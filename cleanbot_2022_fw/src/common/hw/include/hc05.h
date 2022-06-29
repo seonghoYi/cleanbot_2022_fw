@@ -1,0 +1,115 @@
+﻿#ifndef HC05_H_
+#define HC05_H_
+
+#include "hw_def.h"
+#ifdef _USE_HW_HC05
+#define HC05_MAX_CH			HW_HC05_MAX_CH
+#define BT_MSG_BUF_MAX		HW_BT_MSG_BUF_MAX
+
+
+
+typedef struct
+{
+	bool			is_open;
+	
+	uint8_t			ch;
+	
+	uint8_t			role;
+	char			name[32];
+	char			pswd[32];
+	char			slave_addr[32];
+	uint32_t		baud;
+	uint8_t			error_code;
+
+} hc05_t;
+
+enum
+{
+	HC05_AT,
+	HC05_AT_RESET,
+	HC05_AT_VERSION,
+	HC05_AT_ORGL,
+	HC05_AT_ADDR,
+	HC05_AT_NAME,
+	HC05_AT_RNAME,
+	HC05_AT_ROLE,
+	HC05_AT_CLASS,
+	HC05_AT_IAC,
+	HC05_AT_INQM,
+	HC05_AT_PSWD,
+	HC05_AT_UART,
+	HC05_AT_CMODE,
+	HC05_AT_BIND,
+	HC05_AT_POLAR,
+	HC05_AT_PIO,
+	HC05_AT_MPIO,
+	HC05_AT_IPSCAN,
+	HC05_AT_SNIFF,
+	HC05_AT_SENM,
+	HC05_AT_PMSAD,
+	HC05_AT_RMAAD,
+	HC05_AT_FSAD,
+	HC05_AT_ADCN,
+	HC05_AT_MRAD,
+	HC05_AT_STATE,
+	HC05_AT_INIT,
+	HC05_AT_INQ,
+	HC05_AT_INQC,
+	HC05_AT_PAIR,
+	HC05_AT_LINK,
+	HC05_AT_DISC,
+	HC05_AT_ENSNIFF,
+	HC05_AT_EXSNIFF
+};
+
+
+#define HC05_ERROR_AT_CMD_ERROR				0x00U
+#define HC05_ERROR_DEFAULT_RESULT			0x01U
+#define HC05_ERROR_PSKEY_WRITE_ERR			0x02U
+#define HC05_ERROR_TOO_LONG_NAME			0x03U
+#define HC05_ERROR_NO_DEV_NAME				0x04U
+#define HC05_ERROR_NAP_TOO_LONG				0x05U
+#define HC05_ERROR_UAP_TOO_LONG				0x06U
+#define HC05_ERROR_LAP_TOO_LONG				0x07U
+#define HC05_ERROR_NO_PIO_NUM_MASK			0x08U
+#define HC05_ERROR_NO_PIO_NUM				0x09U
+#define HC05_ERROR_NO_BT_DEV				0x0AU
+#define HC05_ERROR_TOO_LEN_DEV				0x0BU
+#define HC05_ERROR_NO_INQ_ACC_CODE			0x0CU
+#define HC05_ERROR_TOO_LONG_INQ_ACC_CODE	0x0DU
+#define HC05_ERROR_INVALID_INQ_ACC_CODE		0x0EU
+#define HC05_ERROR_ZERO_PASSKEY_LEN			0x0FU
+#define HC05_ERROR_TOO_LONG_PASSKEY_LEN		0x10U
+#define HC05_ERROR_INVALID_MODULE_ROLE		0x11U
+#define HC05_ERROR_INVALID_BAUDRATE			0x12U
+#define HC05_ERROR_INVALID_STOPBIT			0x13U
+#define HC05_ERROR_INVALID_PARITYBIT		0x14U
+#define HC05_ERROR_AUTH_DEV_NO_PAIR_LIST	0x15U
+#define HC05_ERROR_SPP_LIB_NO_INIT			0x16U
+#define HC05_ERROR_SPP_LIB_REPEAT_INIT		0x17U
+#define HC05_ERROR_INVALID_INQ_MODE			0x18U
+#define HC05_ERROR_TOO_LONG_INQ_TIME		0x19U
+#define HC05_ERROR_NO_BT_ADDRESS			0x1AU
+#define HC05_ERROR_INVALID_SAFE_MODE		0x1BU
+#define HC05_ERROR_INVALID_ENCRYPTION_MODE	0x1CU
+
+#define HC05_ERROR_NO_ERROR					0xFFU
+
+#define HC05_MODE_SLAVE						0x00
+#define HC05_MODE_MASTER					0x01
+#define HC05_MODE_SLAVE_LOOP				0x02
+
+
+bool		hc05Init(void);
+bool		hc05Open(uint8_t ch_, uint32_t baud_);
+bool		hc05IsOpen(void);
+uint32_t	hc05Available(void);
+uint8_t		hc05Read(void);
+uint32_t	hc05Write(uint8_t *p_data, uint32_t length);
+uint32_t	hc05Printf(char *fmt, ...);
+bool		hc05flush(void);
+bool		hc05SetConfigMode(void);
+bool		hc05ClearConfigMode(void);
+
+#endif
+#endif /* HC05_H_ */
