@@ -3,7 +3,7 @@
 
 #ifdef _USE_HW_UART
 
-#define UART_BUF_MAX_SIZE	256
+#define UART_BUF_MAX_SIZE	512
 
 
 typedef struct
@@ -28,8 +28,11 @@ static qbuffer_t qbuffer[UART_MAX_CH];
 static uint8_t rx_buf[UART_MAX_CH][UART_BUF_MAX_SIZE];
 //static uint8_t rx_data[UART_MAX_CH];
 
+
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
+DMA_HandleTypeDef hdma_usart2_tx;
+
 
 bool uartInit(void)
 {
@@ -95,10 +98,14 @@ bool uartOpen(uint8_t ch, uint32_t baud)
 				qbuffer[_DEF_UART1].out = qbuffer[_DEF_UART1].in;
 
 
-				/* DMA interrupt init */
-				/* DMA1_Channel6_IRQn interrupt configuration */
-				//HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
-				//HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+			  /* DMA interrupt init */
+			  /* DMA1_Channel6_IRQn interrupt configuration */
+			  HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
+			  HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+			  /* DMA1_Channel7_IRQn interrupt configuration */
+			  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
+			  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+
 			}
 
 
@@ -161,9 +168,13 @@ uint32_t uartWrite(uint8_t ch, uint8_t *p_data, uint32_t length)
 	{
 		case _DEF_UART1:
 
-		if (HAL_UART_Transmit(p_handle->p_huart, p_data, length, 100) == HAL_OK)
+		//if (HAL_UART_Transmit(p_handle->p_huart, p_data, length, 100) == HAL_OK)
+		//{
+		//	ret = length;
+		//}
+		if (HAL_UART_Transmit_DMA(p_handle->p_huart, p_data, length) == HAL_OK)
 		{
-			ret = length;
+	  	ret = length;
 		}
 		break;
 		case _DEF_UART2:
@@ -273,6 +284,22 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
 
     __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart2_rx);
 
+    /* USART2_TX Init */
+    hdma_usart2_tx.Instance = DMA1_Channel7;
+    hdma_usart2_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_usart2_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart2_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart2_tx.Init.Mode = DMA_NORMAL;
+    hdma_usart2_tx.Init.Priority = DMA_PRIORITY_LOW;
+    if (HAL_DMA_Init(&hdma_usart2_tx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart2_tx);
+
     /* USART2 interrupt Init */
     HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(USART2_IRQn);
@@ -301,6 +328,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
     /* USART2 DMA DeInit */
     HAL_DMA_DeInit(uartHandle->hdmarx);
+    HAL_DMA_DeInit(uartHandle->hdmatx);
 
     /* USART2 interrupt Deinit */
     HAL_NVIC_DisableIRQ(USART2_IRQn);
