@@ -1,5 +1,7 @@
 ﻿#include "ap.h"
 
+//#include "ros.h"
+
 void apInit(void)
 {
 	uartOpen(_DEF_UART1, 115200);
