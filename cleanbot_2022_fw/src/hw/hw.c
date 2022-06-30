@@ -3,6 +3,7 @@
 void hwInit(void)
 {
 	bspInit();
+	ledInit();
 	//gpioInit();
 	//extiInit();
 	uartInit();
@@ -11,8 +12,6 @@ void hwInit(void)
 	//hc05Init();
 	//suctionMotorInit();
 	//motorInit();
-	//rosInit();
-	//rosServerInit();
 	
 	//runLedInit();
 	//lineLedInit();
