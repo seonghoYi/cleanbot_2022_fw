@@ -22,6 +22,10 @@
 #define _DEF_GPIO_SERVO_R		11
 #define	_DEF_GPIO_SUCTION_RELAY 12
 
+
+#define _DEF_LED1			0
+#define _DEF_LED2			1
+
 #define _DEF_INPUT		0
 #define _DEF_OUTPUT		1
 
@@ -64,8 +68,6 @@
 #define _DEF_DRVMTR3	3
 
 #define _DEF_HC05_0		0
-
-#define _DEF_ROS0		0
 
 
 #define constrain(in,low,high) ((in)<(low)?(low):((in)>(high)?(high):(in)))
