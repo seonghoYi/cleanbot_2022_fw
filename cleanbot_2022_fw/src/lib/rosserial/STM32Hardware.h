@@ -38,18 +38,24 @@
 
 #include "hw_def.h"
 #include "uart.h"
-#include "qbuffer.h"
+
+
+/*
+ * rosserial의 하드웨어 드라이버 부분.
+ * rosserial의 다른 부분은 건들지 말 것!
+ * 프로젝트와 하드웨어의 상황에 따라 아래 코드를 적절히 수정하여 사용할 것.
+ */
 
 
 class STM32Hardware {
   protected:
 		uint8_t uart_ch = _DEF_UART1;
-    const static uint16_t rbuflen = 512;
-    const static uint16_t tbuflen = 512;
+    const static uint16_t rbuflen = 512; //수신 버퍼 최대 크기
+    const static uint16_t tbuflen = 512; //송신 버퍼 최대 크기
 
   public:
-    STM32Hardware():
-      uart_ch(_DEF_UART1)
+    STM32Hardware(): //실제로 작동되는 생성자
+      uart_ch(_DEF_UART1) //기본값. 적절히 수정하여 사용할 것.
     {
     }
 
@@ -87,7 +93,10 @@ class STM32Hardware {
 
     }
 
-    unsigned long time(){ return millis(); }
+    unsigned long time()
+    {
+    	return millis();
+    }
 
   protected:
 };
