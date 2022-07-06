@@ -4,14 +4,14 @@ void hwInit(void)
 {
 	bspInit();
 	ledInit();
-	//gpioInit();
-	//extiInit();
+	gpioInit();
 	uartInit();
 	//ctcInit();
-	//pwmInit();
+	pwmInit();
+	inputCaptureInit();
 	//hc05Init();
 	//suctionMotorInit();
-	//motorInit();
+	motorInit();
 	
 	//runLedInit();
 	//lineLedInit();

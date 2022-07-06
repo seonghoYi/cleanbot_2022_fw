@@ -27,7 +27,6 @@ bool		motorIsInit(void);
 void		motorRun(void);
 void		motorStop(void);
 void		motorBreak(void);
-void		motorSetSpeed(uint16_t speed_);
 void		motorSetLeftSpeed(uint16_t speed_);
 void		motorSetRightSpeed(uint16_t speed_);
 uint16_t*	motorGetSpeed(void);
@@ -35,13 +34,6 @@ uint16_t	motorGetLeftSpeed(void);
 uint16_t	motorGetRightSpeed(void);
 void		motorSetLeftDirection(bool dir);
 void		motorSetRightDirection(bool dir);
-void		motorSetMotionState(uint8_t motion_); // 0: forward, 1: rotate ccw, 2: backward, 3: rotate cw 
-uint8_t		motorGetMotionState(void);
-
-void		motorAdvance(void);
-void		motorGoBackward(void);
-void		motorSpin(bool spinwise_); // 0: CCW, 1: CW
-void		motorSteering(int8_t steering_degrees_);	// 0: forward, 0 > x => -100: steering left, 180 <= x < 0: steering right
 
 #endif
 #endif /* DRIVEMOTOR_H_ */

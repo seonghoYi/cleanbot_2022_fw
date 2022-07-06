@@ -1,26 +1,30 @@
 ﻿#ifndef PWM_H_
 #define PWM_H_
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include "hw_def.h"
 
 #ifdef _USE_HW_PWM
 #define PWM_MAX_CH		HW_PWM_MAX_CH
 
 
-bool pwmInit(void);
-bool pwmBegin(uint8_t ch_);
-bool pwmIsOpen(uint8_t ch_);
-bool pwmStart(uint8_t ch_);
-bool pwmStop(uint8_t ch_);
-bool pwm16ChannelConfig(uint8_t ch_, uint8_t channel_);
+bool 			pwmInit(void);
+bool 			pwmIsOpen(uint8_t ch);
+bool 			pwmStart(uint8_t ch);
+bool 			pwmStop(uint8_t ch);
 
-bool pwmSetTcnt(uint8_t ch_, uint16_t tcnt_);
-uint16_t pwmGetTcnt(uint8_t ch_);
-bool pwmSetOcr(uint8_t ch_, uint16_t ocr_, uint8_t channel_);
-uint16_t pwmGetOcr(uint8_t ch_, uint8_t channel_);
-bool pwmSetIcr(uint8_t ch_, uint16_t icr_);
-uint16_t pwmGetIcr(uint8_t ch_);
-
+void 			pwmWrite(uint8_t ch, uint16_t data);
+uint16_t 	pwmRead(uint8_t ch);
 
 #endif
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* PWM_H_ */

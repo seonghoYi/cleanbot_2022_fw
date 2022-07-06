@@ -1,5 +1,5 @@
 ﻿#include "ap.h"
-
+/*
 #include <ros.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Empty.h>
@@ -73,4 +73,51 @@ void apMain(void)
 
 		nh.spinOnce();
 	}
+}
+*/
+
+
+void apInit(void)
+{
+	uartOpen(_DEF_UART1, 115200);
+	//motorSetLeftSpeed(50);
+	motorSetRightSpeed(100);
+	//motorSetRightDirection(false);
+	//motorSetRightDirection(false);
+	motorRun();
+	//gpioPinWrite(_DEF_GPIO4, _DEF_HIGH);
+}
+
+void apMain(void)
+{
+	uint32_t pre_time = millis();
+
+	int8_t speed = 100;
+	while(1)
+	{
+
+		if(millis()-pre_time >= 1000)
+		{
+			ledToggle(_DEF_LED1);
+			motorSetRightSpeed(speed);
+			//speed -= 10;
+			//if (speed < 0)
+			//{
+			//	speed = 100;
+			//}
+
+
+			pre_time = millis();
+		}
+
+
+		if(inputCaptureAvailable(_DEF_IC1) > 0)
+		{
+			uint16_t vel = inputCaptureGetPulsePeriod(_DEF_IC1);
+			if (vel != 0)
+				uartPrintf(_DEF_UART1, "%d\n", vel);
+		}
+	}
+
+
 }
