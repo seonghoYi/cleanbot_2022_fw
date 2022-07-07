@@ -111,12 +111,10 @@ void apMain(void)
 		}
 
 
-		if(inputCaptureAvailable(_DEF_IC1) > 0)
-		{
-			uint16_t vel = inputCaptureGetPulsePeriod(_DEF_IC1);
-			if (vel != 0)
-				uartPrintf(_DEF_UART1, "%d\n", vel);
-		}
+		uint16_t vel = inputCaptureGetPulseFreq(_DEF_IC1);
+		if (vel != 0)
+			uartPrintf(_DEF_UART1, "%d\n", vel);
+
 	}
 
 

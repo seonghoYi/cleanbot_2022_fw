@@ -15,9 +15,9 @@ bool 			inputCaptureIsOpen(uint8_t ch);
 bool 			inputCaptureStart(uint8_t ch);
 bool 			inputCaptureStop(uint8_t ch);
 
-uint16_t 	inputCaptureAvailable(uint8_t ch);
-uint16_t 	inputCaptureReadValue(uint8_t ch);
-uint16_t 	inputCaptureGetPulsePeriod(uint8_t ch);
+//uint16_t 	inputCaptureAvailable(uint8_t ch);
+//uint16_t 	inputCaptureReadValue(uint8_t ch);
+uint16_t 	inputCaptureGetPulseFreq(uint8_t ch);
 
 #endif
 

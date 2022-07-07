@@ -5,11 +5,22 @@
 #define IC_BUF_MAX_SIZE	128
 
 
+
+
+typedef struct
+{
+	bool is_first;
+	bool is_captured;
+
+	uint16_t captured_value_buf[2];
+	uint16_t captured_value[2];
+} captured_value_t;
+
+
 typedef struct
 {
 	bool 								is_open;
 	TIM_HandleTypeDef 	*p_htim;
-	DMA_HandleTypeDef		*p_hdma;
 	TIM_IC_InitTypeDef 	sConfigIC;
 	uint32_t 						channel;
 	uint32_t 						pclk;
@@ -18,16 +29,12 @@ typedef struct
 
 
 
-static qbuffer_t qbuffer[IC_MAX_CH];
-static uint16_t input_buf[IC_MAX_CH][IC_BUF_MAX_SIZE];
 
-
-ic_tbl_t ic_tbl[IC_MAX_CH];
+ic_tbl_t 					ic_tbl[IC_MAX_CH];
+captured_value_t 	captured_value_tbl[IC_MAX_CH];
 
 
 TIM_HandleTypeDef htim2;
-DMA_HandleTypeDef hdma_tim2_ch1;
-DMA_HandleTypeDef hdma_tim2_ch2_ch4;
 
 
 bool inputCaptureBegin(uint8_t ch);
@@ -81,7 +88,6 @@ bool inputCaptureBegin(uint8_t ch)
 
 
   	p_handle->p_htim = &htim2;
-  	p_handle->p_hdma = &hdma_tim2_ch1;
 
   	p_handle->p_htim->Instance 								= TIM2;
   	p_handle->p_htim->Init.Prescaler 					= 28800-1;
@@ -125,34 +131,14 @@ bool inputCaptureBegin(uint8_t ch)
 			ret = false;
 			Error_Handler();
 		}
+    /* TIM2 interrupt Init */
+    HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIM2_IRQn);
 
 
+    captured_value_tbl[_DEF_IC1].is_first 		= false;
+    captured_value_tbl[_DEF_IC1].is_captured 	= false;
 
-    /* TIM2 DMA Init */
-    /* TIM2_CH1 Init */
-		__HAL_RCC_DMA1_CLK_ENABLE();
-
-		p_handle->p_hdma->Instance = DMA1_Channel5;
-		p_handle->p_hdma->Init.Direction = DMA_PERIPH_TO_MEMORY;
-		p_handle->p_hdma->Init.PeriphInc = DMA_PINC_DISABLE;
-		p_handle->p_hdma->Init.MemInc = DMA_MINC_ENABLE;
-		p_handle->p_hdma->Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-		p_handle->p_hdma->Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-		p_handle->p_hdma->Init.Mode = DMA_CIRCULAR;
-		p_handle->p_hdma->Init.Priority = DMA_PRIORITY_LOW;
-    if (HAL_DMA_Init(&hdma_tim2_ch1) != HAL_OK)
-    {
-    	ret = false;
-      Error_Handler();
-    }
-
-    __HAL_LINKDMA(p_handle->p_htim,hdma[TIM_DMA_ID_CC1],*(p_handle->p_hdma));
-
-    qbufferCreateBySize(&qbuffer[_DEF_IC1], (uint8_t *)&input_buf[_DEF_IC1][0], 2, IC_BUF_MAX_SIZE);
-
-    /* DMA1_Channel5_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 
   break;
   case _DEF_IC2:
@@ -171,7 +157,6 @@ bool inputCaptureBegin(uint8_t ch)
 
 
   	p_handle->p_htim = &htim2;
-  	p_handle->p_hdma = &hdma_tim2_ch2_ch4;
 
   	p_handle->p_htim->Instance = TIM2;
   	p_handle->p_htim->Init.Prescaler = 28800-1;
@@ -215,34 +200,12 @@ bool inputCaptureBegin(uint8_t ch)
 			ret = false;
 			Error_Handler();
 		}
+    /* TIM2 interrupt Init */
+    HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIM2_IRQn);
 
-		/* TIM2 DMA Init */
-		/* TIM2_CH2_CH4 Init */
-		__HAL_RCC_DMA1_CLK_ENABLE();
-
-		p_handle->p_hdma->Instance = DMA1_Channel7;
-		p_handle->p_hdma->Init.Direction = DMA_PERIPH_TO_MEMORY;
-		p_handle->p_hdma->Init.PeriphInc = DMA_PINC_DISABLE;
-		p_handle->p_hdma->Init.MemInc = DMA_MINC_ENABLE;
-		p_handle->p_hdma->Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-		p_handle->p_hdma->Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-		p_handle->p_hdma->Init.Mode = DMA_CIRCULAR;
-		p_handle->p_hdma->Init.Priority = DMA_PRIORITY_LOW;
-		if (HAL_DMA_Init(p_handle->p_hdma) != HAL_OK)
-		{
-			ret = false;
-			Error_Handler();
-		}
-
-		/* Several peripheral DMA handle pointers point to the same DMA handle.
-		 Be aware that there is only one channel to perform all the requested DMAs. */
-		__HAL_LINKDMA(p_handle->p_htim,hdma[TIM_DMA_ID_CC2],*(p_handle->p_hdma));
-
-    qbufferCreateBySize(&qbuffer[_DEF_IC2], (uint8_t *)&input_buf[_DEF_IC2][0], 2, IC_BUF_MAX_SIZE);
-
-	  /* DMA1_Channel7_IRQn interrupt configuration */
-	  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
-	  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+    captured_value_tbl[_DEF_IC2].is_first 		= false;
+    captured_value_tbl[_DEF_IC2].is_captured 	= false;
 
 	break;
   default:
@@ -264,13 +227,10 @@ bool inputCaptureStart(uint8_t ch)
 	bool ret = false;
 	ic_tbl_t *p_handle = &ic_tbl[ch];
 
-	if (HAL_TIM_IC_Start_DMA(p_handle->p_htim, p_handle->channel, (uint32_t *)&input_buf[p_handle->channel][0], IC_BUF_MAX_SIZE) != HAL_OK)
+	if (HAL_TIM_IC_Start_IT(p_handle->p_htim, p_handle->channel) != HAL_OK)
 	{
 		return ret;
 	}
-
-  qbuffer[p_handle->channel].in = qbuffer[p_handle->channel].len - p_handle->p_hdma->Instance->CNDTR;
-  qbuffer[p_handle->channel].out = qbuffer[p_handle->channel].in;
 
   return true;
 }
@@ -280,7 +240,7 @@ bool inputCaptureStop(uint8_t ch)
 	bool ret = false;
 	ic_tbl_t *p_handle = &ic_tbl[ch];
 
-	if (HAL_TIM_IC_Stop_DMA(p_handle->p_htim, p_handle->channel) != HAL_OK)
+	if (HAL_TIM_IC_Stop_IT(p_handle->p_htim, p_handle->channel) != HAL_OK)
 	{
 		return ret;
 	}
@@ -288,7 +248,7 @@ bool inputCaptureStop(uint8_t ch)
 
   return true;
 }
-
+/*
 uint16_t inputCaptureAvailable(uint8_t ch)
 {
 	uint16_t ret = 0;
@@ -336,24 +296,18 @@ uint16_t inputCaptureReadValue(uint8_t ch)
 
 	return ret;
 }
+*/
 
-uint16_t inputCaptureGetPulsePeriod(uint8_t ch)
+uint16_t inputCaptureGetPulseFreq(uint8_t ch)
 {
 	float ret = 0;
-	uint16_t capture[2];
+
 	ic_tbl_t *p_handle = &ic_tbl[ch];
+	captured_value_t *p_captured_value = &captured_value_tbl[ch];
+
+
 	uint32_t count_freq, period = 0;
-
-	if (!(inputCaptureAvailable(ch) > 2))
-	{
-		return ret;
-	}
-
-	if (qbufferRead(&qbuffer[ch], (uint8_t *)&capture[0], 2) == false)
-	{
-		ret = -1;
-	}
-
+	uint16_t *capture = &p_captured_value->captured_value[0];
 
 
 	if (capture[0] > capture[1])
@@ -366,9 +320,48 @@ uint16_t inputCaptureGetPulsePeriod(uint8_t ch)
 	}
 
 	count_freq = p_handle->pclk / p_handle->p_htim->Init.Prescaler;
-	ret = (period * 10000)  / count_freq;
+	ret = count_freq/period + 0.5;
 
 	return (uint16_t)ret;
+}
+
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+	uint8_t channel;
+	captured_value_t *p_captured_value;
+
+	if (htim->Instance == TIM2)
+	{
+		if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+		{
+			channel = _DEF_IC1;
+		}
+		else if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+		{
+			channel = _DEF_IC2;
+		}
+		else
+		{
+			return;
+		}
+
+		p_captured_value = &captured_value_tbl[channel];
+
+		if (p_captured_value->is_first == false)
+		{
+			p_captured_value->captured_value_buf[0] = HAL_TIM_ReadCapturedValue(htim, htim->Channel);
+			p_captured_value->is_first = true;
+			p_captured_value->is_captured = false;
+		}
+		else if (p_captured_value->is_first == true)
+		{
+			p_captured_value->captured_value_buf[1] = HAL_TIM_ReadCapturedValue(htim, htim->Channel);
+			p_captured_value->is_captured = true;
+			p_captured_value->captured_value[0] = p_captured_value->captured_value_buf[0];
+			p_captured_value->captured_value[1] = p_captured_value->captured_value_buf[1];
+		}
+	}
 }
 
 #endif
