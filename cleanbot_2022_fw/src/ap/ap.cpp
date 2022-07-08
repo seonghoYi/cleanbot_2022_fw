@@ -103,7 +103,8 @@ void apMain(void)
 			speed -= 10;
 			if (speed < 0)
 			{
-				speed = 100;
+				speed = 0;
+				//motorStop();
 			}
 
 
@@ -114,7 +115,7 @@ void apMain(void)
 
 		//uint16_t *data = inputCaptureGetPulseRawData(_DEF_IC1);
 
-		float speed = motorGetRightSpeed();
+ 		float speed = motorGetRightSpeed();
 		uartPrintf(_DEF_UART1, "%f\n", speed);
 	}
 

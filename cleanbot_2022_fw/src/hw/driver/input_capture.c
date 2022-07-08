@@ -1,9 +1,10 @@
 #include "input_capture.h"
 #include "qbuffer.h"
+#include "uart.h"
 #ifdef _USE_HW_INPUT_CAPTURE
 
 #define IC_BUF_MAX_SIZE	2
-#define IC_TIMOUT				10 //ms
+#define IC_TIMOUT				15 //ms
 
 typedef struct
 {
@@ -385,10 +386,12 @@ uint16_t *inputCaptureGetPulseRawData(uint8_t ch)
 	uint32_t count_freq, period = 0;
 
 
-	if (p_handle->ic_timeout.running_count != p_handle->ic_timeout.prev_running_count)
+	if (p_handle->ic_timeout.running_count == p_handle->ic_timeout.prev_running_count)
 	{
+		//uartPrintf(_DEF_UART1, "%d\n", millis()-p_handle->ic_timeout.prev_time );
 		if (millis()-p_handle->ic_timeout.prev_time >= IC_TIMOUT)
 		{
+			p_handle->ic_timeout.is_running = false;
 			p_captured_value->captured_value[0] = 0;
 			p_captured_value->captured_value[1] = 0;
 			p_captured_value->captured_value_buf[0] = 0;
@@ -397,34 +400,46 @@ uint16_t *inputCaptureGetPulseRawData(uint8_t ch)
 			p_captured_value->prev_counter_pulse = 0;
 		}
 	}
+	else
+	{
+		p_handle->ic_timeout.is_running = true;
+	}
+
+	if (p_handle->ic_timeout.is_running != true)
+	{
+		ret[0] = 0;
+		ret[1] = 0;
+	}
 
 
 	if (p_captured_value->is_captured != true)
 	{
 		ret[0] = p_captured_value->prev_counter_pulse;
 		ret[1] = (uint16_t)p_captured_value->prev_freq;
-		return ret;
-	}
-
-	if (p_captured_value->captured_value[0] > p_captured_value->captured_value[1])
-	{
-		period = p_handle->p_htim->Instance->ARR + p_captured_value->captured_value[1] - p_captured_value->captured_value[0];
 	}
 	else
 	{
-		period = p_captured_value->captured_value[1] - p_captured_value->captured_value[0];
+		if (p_captured_value->captured_value[0] > p_captured_value->captured_value[1])
+		{
+			period = p_handle->p_htim->Instance->ARR + p_captured_value->captured_value[1] - p_captured_value->captured_value[0];
+		}
+		else
+		{
+			period = p_captured_value->captured_value[1] - p_captured_value->captured_value[0];
+		}
+
+		count_freq = p_handle->pclk / (p_handle->p_htim->Init.Prescaler + 1);
+
+		p_captured_value->prev_counter_pulse = period;
+		p_captured_value->prev_freq = (count_freq / period) + 0.5;
+
+
+		ret[0] = p_captured_value->prev_counter_pulse;
+		ret[1] = (uint16_t)p_captured_value->prev_freq;
+		p_captured_value->is_captured = false;
 	}
 
-	count_freq = p_handle->pclk / (p_handle->p_htim->Init.Prescaler + 1);
-
-	p_captured_value->prev_counter_pulse = period;
-	p_captured_value->prev_freq = (count_freq / period) + 0.5;
-
-
-	ret[0] = p_captured_value->prev_counter_pulse;
-	ret[1] = (uint16_t)p_captured_value->prev_freq;
-	p_captured_value->is_captured = false;
-
+	p_handle->ic_timeout.prev_running_count = p_handle->ic_timeout.running_count;
 	return ret;
 }
 
@@ -456,7 +471,6 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 		p_captured_value->captured_value[1] = p_captured_value->captured_value_buf[1];
 		p_captured_value->is_captured = true;
 	}
-	p_handle->ic_timeout.prev_running_count = p_handle->ic_timeout.running_count;
 	p_handle->ic_timeout.running_count++;
 	p_handle->ic_timeout.prev_time = millis();
 }
