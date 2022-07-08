@@ -81,7 +81,7 @@ void apInit(void)
 {
 	uartOpen(_DEF_UART1, 115200);
 	//motorSetLeftSpeed(50);
-	motorSetRightSpeed(100);
+	motorSetRightSpeedByDuty(100);
 	//motorSetRightDirection(false);
 	//motorSetRightDirection(false);
 	motorRun();
@@ -99,21 +99,23 @@ void apMain(void)
 		if(millis()-pre_time >= 1000)
 		{
 			ledToggle(_DEF_LED1);
-			motorSetRightSpeed(speed);
-			//speed -= 10;
-			//if (speed < 0)
-			//{
-			//	speed = 100;
-			//}
+			motorSetRightSpeedByDuty(speed);
+			speed -= 10;
+			if (speed < 0)
+			{
+				speed = 100;
+			}
+
+
 
 
 			pre_time = millis();
 		}
 
+		//uint16_t *data = inputCaptureGetPulseRawData(_DEF_IC1);
 
-		uint16_t vel = inputCaptureGetPulseFreq(_DEF_IC1);
-		//if (vel != 0)
-		uartPrintf(_DEF_UART1, "%d\n", vel);
+		float speed = motorGetRightSpeed();
+		uartPrintf(_DEF_UART1, "%f\n", speed);
 	}
 
 

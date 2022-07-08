@@ -4,8 +4,13 @@
 
 #ifdef _USE_HW_DMC16
 #include "drivemotor/dmc16.h"
+#include "input_capture.h"
 #endif
 
+
+const float WHEEL_RADIUS 	= 0.035;
+const float ENCODER_PPR  	= 254.4;
+const float PI						= 3.1415926;
 
 static drivemotor_driver_t motor;
 static bool is_init = false;
@@ -22,8 +27,8 @@ bool motorInit(void)
 	}
 	motorSetLeftDirection(true);
 	motorSetRightDirection(true);
-	motorSetLeftSpeed(0);
-	motorSetRightSpeed(0);
+	motorSetLeftSpeedByDuty(0);
+	motorSetRightSpeedByDuty(0);
 	motorBreak();
 	motorStop();
 	return true;
@@ -60,7 +65,7 @@ void motorBreak(void)
 #endif
 }
 
-void motorSetLeftSpeed(uint16_t speed_)
+void motorSetLeftSpeedByDuty(uint16_t speed)
 {
 	/*
 	const uint8_t power_max = 255;
@@ -73,11 +78,11 @@ void motorSetLeftSpeed(uint16_t speed_)
 	}
 	*/
 #ifdef _USE_HW_DMC16
-	motor.setSpeed(_DEF_DMC16_2, speed_);
+	motor.setSpeed(_DEF_DMC16_2, speed);
 #endif
 }
 
-void motorSetRightSpeed(uint16_t speed_)
+void motorSetRightSpeedByDuty(uint16_t speed)
 {
 	/*
 	const uint8_t power_max = 255;
@@ -90,38 +95,39 @@ void motorSetRightSpeed(uint16_t speed_)
 	}
 	*/
 #ifdef _USE_HW_DMC16
-	motor.setSpeed(_DEF_DMC16_1, speed_);
+	motor.setSpeed(_DEF_DMC16_1, speed);
 #endif
 	
 }
 
-uint16_t* motorGetSpeed(void)
+
+
+float motorGetLeftSpeed(void)
 {
-	//const uint8_t power_max = 255;
-	//const uint8_t scale_limit = 20;
-	static uint16_t speed_[2] = {0};
-	//static uint8_t power_[2] = {0};
-#ifdef _USE_HW_DMC16
-	speed_[0] = motor.getSpeed(_DEF_DMC16_2);
-	speed_[1] = motor.getSpeed(_DEF_DMC16_1);
-#endif
-	
-	return speed_;
-
-}
+	float ret = 0;
 
 
-uint16_t motorGetLeftSpeed(void)
-{
-	uint16_t ret = 0;
-	ret = motor.getSpeed(_DEF_DMC16_2);
+	float raw_rps = motor.getSpeed(_DEF_DMC16_2);
+
+	float rps = raw_rps / ENCODER_PPR;
+	float speed = 2*PI * WHEEL_RADIUS * rps;
+
+	ret = speed;
+
 	return ret;
 }
 
-uint16_t motorGetRightSpeed(void)
+float motorGetRightSpeed(void)
 {
-	uint16_t ret = 0;
-	ret = motor.getSpeed(_DEF_DMC16_1);
+	float ret = 0;
+
+
+	float raw_rps = motor.getSpeed(_DEF_DMC16_1);
+
+	float rps = raw_rps / ENCODER_PPR;
+	float speed = 2*PI * WHEEL_RADIUS * rps;
+
+	ret = speed;
 	return ret;
 }
 

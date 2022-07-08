@@ -17,12 +17,10 @@ typedef struct
 {
 	bool is_captured;
 
-	uint32_t running_count;
-	uint32_t prev_running_count;
-
-	uint16_t captured_value_buf[IC_BUF_MAX_SIZE];
-	uint16_t captured_value[IC_BUF_MAX_SIZE];
-	float 	 prev_freq;
+	uint16_t  captured_value_buf[IC_BUF_MAX_SIZE];
+	uint16_t 	captured_value[IC_BUF_MAX_SIZE];
+	uint16_t 	prev_counter_pulse;
+	float 	 	prev_freq;
 } captured_value_t;
 
 
@@ -377,9 +375,10 @@ uint16_t inputCaptureReadValue(uint8_t ch)
 }
 */
 
-uint16_t inputCaptureGetPulseFreq(uint8_t ch)
+
+uint16_t *inputCaptureGetPulseRawData(uint8_t ch)
 {
-	uint16_t ret = 0;
+	static uint16_t ret[2] = {0, };
 	//uint16_t capture[2];
 	ic_tbl_t *p_handle = &ic_tbl[ch];
 	captured_value_t *p_captured_value = &p_handle->captured_value;
@@ -395,13 +394,15 @@ uint16_t inputCaptureGetPulseFreq(uint8_t ch)
 			p_captured_value->captured_value_buf[0] = 0;
 			p_captured_value->captured_value_buf[1] = 0;
 			p_captured_value->prev_freq = 0;
+			p_captured_value->prev_counter_pulse = 0;
 		}
 	}
 
 
 	if (p_captured_value->is_captured != true)
 	{
-		ret = (uint16_t)p_captured_value->prev_freq;
+		ret[0] = p_captured_value->prev_counter_pulse;
+		ret[1] = (uint16_t)p_captured_value->prev_freq;
 		return ret;
 	}
 
@@ -415,8 +416,13 @@ uint16_t inputCaptureGetPulseFreq(uint8_t ch)
 	}
 
 	count_freq = p_handle->pclk / (p_handle->p_htim->Init.Prescaler + 1);
+
+	p_captured_value->prev_counter_pulse = period;
 	p_captured_value->prev_freq = (count_freq / period) + 0.5;
-	ret = (uint16_t)p_captured_value->prev_freq;
+
+
+	ret[0] = p_captured_value->prev_counter_pulse;
+	ret[1] = (uint16_t)p_captured_value->prev_freq;
 	p_captured_value->is_captured = false;
 
 	return ret;

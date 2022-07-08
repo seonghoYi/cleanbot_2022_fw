@@ -3,6 +3,9 @@
 #include "pwm.h"
 #include "input_capture.h"
 
+
+
+#include "uart.h"
 #ifdef _USE_HW_DMC16
 
 typedef struct
@@ -81,7 +84,7 @@ bool dmc16DriverInit(drivemotor_driver_t *p_driver)
 	p_driver->stopMotor			= dmc16Stop;
 	p_driver->breakMotor		= dmc16Hold;
 	p_driver->setSpeed			= dmc16SetSpeed;
-	p_driver->getSpeed			= dmc16GetSpeed;
+	p_driver->getSpeed			= dmc16GetRawRPS;
 	p_driver->setDirection	= dmc16SetDirection;
 	p_driver->getDirection	= dmc16GetDirection;
 	p_driver->setCallBack		= NULL;
@@ -221,12 +224,23 @@ bool dmc16SetSpeed(uint8_t ch, uint16_t speed)
 	return ret;
 }
 
-uint16_t dmc16GetSpeed(uint8_t ch)
+float dmc16GetRawRPS(uint8_t ch)
 {
-	uint16_t ret = 0;
-	
+	float ret = 0;
 	dmc16_t *p_dmc16 = &dmc16_tbl[ch];
-	ret = p_dmc16->h_dmc16->get_speed;
+	uint16_t *p_raw_data = inputCaptureGetPulseRawData(p_dmc16->h_dmc16->Init.input_ch);
+
+	uint16_t pulse = p_raw_data[0];
+	uint16_t freq  = p_raw_data[1];
+
+	if (freq == 0)
+	{
+		return ret;
+	}
+
+	float raw_rps = 1 / ((float)pulse / (float)freq);
+	ret = raw_rps;
+	//ret = p_dmc16->h_dmc16->get_speed;
 	return ret;
 }
 
