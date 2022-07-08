@@ -2,7 +2,28 @@
 #include "qbuffer.h"
 #ifdef _USE_HW_INPUT_CAPTURE
 
-#define IC_BUF_MAX_SIZE	128
+#define IC_BUF_MAX_SIZE	2
+#define IC_TIMOUT				10 //ms
+
+typedef struct
+{
+	bool is_running;
+	uint32_t prev_time;
+	uint32_t running_count;
+	uint32_t prev_running_count;
+} ic_timeout_t;
+
+typedef struct
+{
+	bool is_captured;
+
+	uint32_t running_count;
+	uint32_t prev_running_count;
+
+	uint16_t captured_value_buf[IC_BUF_MAX_SIZE];
+	uint16_t captured_value[IC_BUF_MAX_SIZE];
+	float 	 prev_freq;
+} captured_value_t;
 
 
 typedef struct
@@ -10,20 +31,26 @@ typedef struct
 	bool 								is_open;
 	TIM_HandleTypeDef 	*p_htim;
 	DMA_HandleTypeDef		*p_hdma;
+
+	captured_value_t		captured_value;
+	ic_timeout_t				ic_timeout;
 	TIM_IC_InitTypeDef 	sConfigIC;
+
 	uint32_t 						channel;
 	uint32_t 						pclk;
+
+
+
 } ic_tbl_t;
 
 
 
 
-static qbuffer_t qbuffer[IC_MAX_CH];
-static uint16_t input_buf[IC_MAX_CH][IC_BUF_MAX_SIZE];
+//static uint16_t input_buf[IC_MAX_CH][IC_BUF_MAX_SIZE];
 
 
 ic_tbl_t ic_tbl[IC_MAX_CH];
-
+//captured_value_t captured_value[IC_MAX_CH];
 
 TIM_HandleTypeDef htim2;
 DMA_HandleTypeDef hdma_tim2_ch1;
@@ -80,8 +107,13 @@ bool inputCaptureBegin(uint8_t ch)
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 
-  	p_handle->p_htim = &htim2;
-  	p_handle->p_hdma = &hdma_tim2_ch1;
+  	p_handle->p_htim 													= &htim2;
+  	p_handle->p_hdma 													= &hdma_tim2_ch1;
+  	p_handle->captured_value.is_captured		  = false;
+  	p_handle->ic_timeout.is_running 					= false;
+  	p_handle->ic_timeout.running_count 				= 0;
+  	p_handle->ic_timeout.prev_running_count 	= 0;
+  	p_handle->ic_timeout.prev_time 						= 0;
 
   	p_handle->p_htim->Instance 								= TIM2;
   	p_handle->p_htim->Init.Prescaler 					= 28800-1;
@@ -148,7 +180,7 @@ bool inputCaptureBegin(uint8_t ch)
 
     __HAL_LINKDMA(p_handle->p_htim,hdma[TIM_DMA_ID_CC1],*(p_handle->p_hdma));
 
-    qbufferCreateBySize(&qbuffer[_DEF_IC1], (uint8_t *)&input_buf[_DEF_IC1][0], 2, IC_BUF_MAX_SIZE);
+    //qbufferCreateBySize(&qbuffer[_DEF_IC1], (uint8_t *)&input_buf[_DEF_IC1][0], 2, IC_BUF_MAX_SIZE);
 
     /* DMA1_Channel5_IRQn interrupt configuration */
     HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
@@ -170,8 +202,13 @@ bool inputCaptureBegin(uint8_t ch)
 
 
 
-  	p_handle->p_htim = &htim2;
-  	p_handle->p_hdma = &hdma_tim2_ch2_ch4;
+  	p_handle->p_htim 													= &htim2;
+  	p_handle->p_hdma 													= &hdma_tim2_ch2_ch4;
+  	p_handle->captured_value.is_captured		  = false;
+  	p_handle->ic_timeout.is_running 					= false;
+  	p_handle->ic_timeout.running_count 				= 0;
+  	p_handle->ic_timeout.prev_running_count 	= 0;
+  	p_handle->ic_timeout.prev_time 						= 0;
 
   	p_handle->p_htim->Instance = TIM2;
   	p_handle->p_htim->Init.Prescaler = 28800-1;
@@ -238,7 +275,7 @@ bool inputCaptureBegin(uint8_t ch)
 		 Be aware that there is only one channel to perform all the requested DMAs. */
 		__HAL_LINKDMA(p_handle->p_htim,hdma[TIM_DMA_ID_CC2],*(p_handle->p_hdma));
 
-    qbufferCreateBySize(&qbuffer[_DEF_IC2], (uint8_t *)&input_buf[_DEF_IC2][0], 2, IC_BUF_MAX_SIZE);
+    //qbufferCreateBySize(&qbuffer[_DEF_IC2], (uint8_t *)&input_buf[_DEF_IC2][0], 2, IC_BUF_MAX_SIZE);
 
 	  /* DMA1_Channel7_IRQn interrupt configuration */
 	  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
@@ -264,13 +301,13 @@ bool inputCaptureStart(uint8_t ch)
 	bool ret = false;
 	ic_tbl_t *p_handle = &ic_tbl[ch];
 
-	if (HAL_TIM_IC_Start_DMA(p_handle->p_htim, p_handle->channel, (uint32_t *)&input_buf[p_handle->channel][0], IC_BUF_MAX_SIZE) != HAL_OK)
+	if (HAL_TIM_IC_Start_DMA(p_handle->p_htim, p_handle->channel, (uint32_t *)&p_handle->captured_value.captured_value_buf[0], IC_BUF_MAX_SIZE) != HAL_OK)
 	{
 		return ret;
 	}
 
-  qbuffer[p_handle->channel].in = qbuffer[p_handle->channel].len - p_handle->p_hdma->Instance->CNDTR;
-  qbuffer[p_handle->channel].out = qbuffer[p_handle->channel].in;
+  //qbuffer[p_handle->channel].in = qbuffer[p_handle->channel].len - p_handle->p_hdma->Instance->CNDTR;
+  //qbuffer[p_handle->channel].out = qbuffer[p_handle->channel].in;
 
   return true;
 }
@@ -288,7 +325,7 @@ bool inputCaptureStop(uint8_t ch)
 
   return true;
 }
-
+/*
 uint16_t inputCaptureAvailable(uint8_t ch)
 {
 	uint16_t ret = 0;
@@ -308,7 +345,9 @@ uint16_t inputCaptureAvailable(uint8_t ch)
 
 	return ret;
 }
+*/
 
+/*
 uint16_t inputCaptureReadValue(uint8_t ch)
 {
 	uint16_t ret = 0;
@@ -336,39 +375,86 @@ uint16_t inputCaptureReadValue(uint8_t ch)
 
 	return ret;
 }
+*/
 
-uint16_t inputCaptureGetPulsePeriod(uint8_t ch)
+uint16_t inputCaptureGetPulseFreq(uint8_t ch)
 {
-	float ret = 0;
-	uint16_t capture[2];
+	uint16_t ret = 0;
+	//uint16_t capture[2];
 	ic_tbl_t *p_handle = &ic_tbl[ch];
+	captured_value_t *p_captured_value = &p_handle->captured_value;
 	uint32_t count_freq, period = 0;
 
-	if (!(inputCaptureAvailable(ch) > 2))
+
+	if (p_handle->ic_timeout.running_count != p_handle->ic_timeout.prev_running_count)
 	{
+		if (millis()-p_handle->ic_timeout.prev_time >= IC_TIMOUT)
+		{
+			p_captured_value->captured_value[0] = 0;
+			p_captured_value->captured_value[1] = 0;
+			p_captured_value->captured_value_buf[0] = 0;
+			p_captured_value->captured_value_buf[1] = 0;
+			p_captured_value->prev_freq = 0;
+		}
+	}
+
+
+	if (p_captured_value->is_captured != true)
+	{
+		ret = (uint16_t)p_captured_value->prev_freq;
 		return ret;
 	}
 
-	if (qbufferRead(&qbuffer[ch], (uint8_t *)&capture[0], 2) == false)
+	if (p_captured_value->captured_value[0] > p_captured_value->captured_value[1])
 	{
-		ret = -1;
-	}
-
-
-
-	if (capture[0] > capture[1])
-	{
-		period = p_handle->p_htim->Instance->ARR + capture[1] - capture[0];
+		period = p_handle->p_htim->Instance->ARR + p_captured_value->captured_value[1] - p_captured_value->captured_value[0];
 	}
 	else
 	{
-		period = capture[1] - capture[0];
+		period = p_captured_value->captured_value[1] - p_captured_value->captured_value[0];
 	}
 
-	count_freq = p_handle->pclk / p_handle->p_htim->Init.Prescaler;
-	ret = (period * 10000)  / count_freq;
+	count_freq = p_handle->pclk / (p_handle->p_htim->Init.Prescaler + 1);
+	p_captured_value->prev_freq = (count_freq / period) + 0.5;
+	ret = (uint16_t)p_captured_value->prev_freq;
+	p_captured_value->is_captured = false;
 
-	return (uint16_t)ret;
+	return ret;
 }
+
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+	uint32_t channel;
+	captured_value_t *p_captured_value;
+	ic_tbl_t *p_handle;
+
+	if (htim->Instance == TIM2)
+	{
+		if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+		{
+			channel = _DEF_IC1;
+		}
+		else if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+		{
+			channel = _DEF_IC2;
+		}
+	}
+	p_handle = &ic_tbl[channel];
+	p_captured_value = &p_handle->captured_value;
+
+
+	if (p_captured_value->is_captured == false)
+	{
+		p_captured_value->captured_value[0] = p_captured_value->captured_value_buf[0];
+		p_captured_value->captured_value[1] = p_captured_value->captured_value_buf[1];
+		p_captured_value->is_captured = true;
+	}
+	p_handle->ic_timeout.prev_running_count = p_handle->ic_timeout.running_count;
+	p_handle->ic_timeout.running_count++;
+	p_handle->ic_timeout.prev_time = millis();
+}
+
+
 
 #endif
