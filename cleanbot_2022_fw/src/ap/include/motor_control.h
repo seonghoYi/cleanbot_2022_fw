@@ -2,12 +2,13 @@
 #define SRC_AP_INCLUDE_MOTOR_CONTROL_H_
 
 
-#include "hw.h"
+#include "ap_def.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#ifdef _USE_AP_MOTOR_CONTROL
 
 typedef struct
 {
@@ -26,6 +27,8 @@ motor_speed_t *motorControlUpdate(motor_speed_t set_speed);
 
 
 
+
+#endif
 
 #ifdef __cplusplus
 }

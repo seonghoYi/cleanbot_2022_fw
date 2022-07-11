@@ -3,7 +3,7 @@
 
 #ifdef _USE_HW_UART
 
-#define UART_BUF_MAX_SIZE	512
+#define UART_BUF_MAX_SIZE	1024
 
 
 typedef struct

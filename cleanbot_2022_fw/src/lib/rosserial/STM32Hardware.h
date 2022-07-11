@@ -50,8 +50,8 @@
 class STM32Hardware {
   protected:
 		uint8_t uart_ch = _DEF_UART1;
-    const static uint16_t rbuflen = 512; //수신 버퍼 최대 크기
-    const static uint16_t tbuflen = 512; //송신 버퍼 최대 크기
+    const static uint16_t rbuflen = 1024; //수신 버퍼 최대 크기
+    const static uint16_t tbuflen = 1024; //송신 버퍼 최대 크기
 
   public:
     STM32Hardware(): //실제로 작동되는 생성자

@@ -1,8 +1,7 @@
 ﻿#ifndef AP_H_
 #define AP_H_
 
-#include "hw.h"
-
+#include "ap_def.h"
 
 #ifdef __cplusplus
 extern "C" {

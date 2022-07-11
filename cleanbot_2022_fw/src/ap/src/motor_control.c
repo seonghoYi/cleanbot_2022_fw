@@ -2,6 +2,9 @@
 #include "math.h"
 
 
+#ifdef _USE_AP_MOTOR_CONTROL
+
+
 #define P_GAIN  16.0f
 #define I_GAIN	10.0f
 
@@ -12,7 +15,6 @@ bool motorControlInit(uint32_t update_hz)
 	bool ret = true;
 
 	update_ms = (uint32_t)(1.0 / (float)update_hz * 1000.0);
-	uartPrintf(_DEF_UART1, "%d", update_ms);
 
 	motorSetLeftSpeed(0.0f);
 	motorSetRightSpeed(0.0f);
@@ -102,3 +104,5 @@ motor_speed_t *motorControlUpdate(motor_speed_t set_speed)
 
 	return &ret_speed;
 }
+
+#endif
