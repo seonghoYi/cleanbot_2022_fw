@@ -27,12 +27,13 @@ bool			motorIsInit(void);
 void			motorRun(void);
 void			motorStop(void);
 void			motorBreak(void);
-void			motorSetLeftSpeedByDuty(uint16_t duty);
-void			motorSetRightSpeedByDuty(uint16_t duty);
+void			motorSetLeftSpeed(float speed);
+void			motorSetRightSpeed(float speed);
 float			motorGetLeftSpeed(void);
 float			motorGetRightSpeed(void);
 void			motorSetLeftDirection(bool dir);
 void			motorSetRightDirection(bool dir);
-
+bool			motorGetLeftDirection(void);
+bool			motorGetRightDirection(void);
 #endif
 #endif /* DRIVEMOTOR_H_ */

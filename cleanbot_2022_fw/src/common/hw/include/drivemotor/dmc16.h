@@ -5,6 +5,9 @@
 #ifdef _USE_HW_DMC16
 #define	DMC16_MAX_CH	HW_DMC16_MAX_CH
 
+#define _REVERSE_ROTATION					_DEF_BACK
+#define _NORMAL_ROTATION					_DEF_FOR
+
 #include "drivemotor.h"
 
 typedef struct
@@ -35,6 +38,8 @@ bool	dmc16SetDirection(uint8_t ch, bool dir);
 bool	dmc16GetDirection(uint8_t ch);
 bool	dmc16SetSpeed(uint8_t ch, uint16_t speed);
 float dmc16GetRawRPS(uint8_t ch);
+
+
 
 
 #endif

@@ -1,4 +1,6 @@
 ﻿#include "ap.h"
+#include "motor_control.h"
+
 /*
 #include <ros.h>
 #include <std_msgs/String.h>
@@ -81,42 +83,40 @@ void apInit(void)
 {
 	uartOpen(_DEF_UART1, 115200);
 	//motorSetLeftSpeed(50);
-	motorSetRightSpeedByDuty(100);
+	//motorSetRightSpeedByDuty(100);
 	//motorSetRightDirection(false);
 	//motorSetRightDirection(false);
-	motorRun();
+	//motorRun();
 	//gpioPinWrite(_DEF_GPIO4, _DEF_HIGH);
+
+	motorControlInit(500);
+
 }
 
 void apMain(void)
 {
 	uint32_t pre_time = millis();
+	//int16_t speed = 100;
 
-	int8_t speed = 100;
+	motor_speed_t speed = {0.02, 0.02};
+
 	while(1)
 	{
-
-		if(millis()-pre_time >= 1000)
+		/*
+		if (millis() - pre_time >= 1000)
 		{
-			ledToggle(_DEF_LED1);
-			motorSetRightSpeedByDuty(speed);
 			speed -= 10;
-			if (speed < 0)
-			{
-				speed = 0;
-				//motorStop();
-			}
-
-
-
-
-			pre_time = millis();
 		}
+		if (speed < 0)
+		{
+			speed = 100;
+		}
+		*/
 
-		//uint16_t *data = inputCaptureGetPulseRawData(_DEF_IC1);
+		motor_speed_t *cur_speed = motorControlUpdate(speed);
+		uartPrintf(_DEF_UART1, "left: %f, right: %f\n", cur_speed->left_speed, cur_speed->right_speed);
 
- 		float speed = motorGetRightSpeed();
-		uartPrintf(_DEF_UART1, "%f\n", speed);
+
 	}
 
 

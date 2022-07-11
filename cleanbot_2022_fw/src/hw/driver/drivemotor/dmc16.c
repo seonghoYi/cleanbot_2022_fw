@@ -40,8 +40,8 @@ bool dmc16Init(uint8_t ch)
 		case _DEF_DMC16_1:
 		p_dmc16->h_dmc16									= &h_dmc16_1;
 		
-		p_dmc16->normal_rotate						= _DEF_CCW;
-		p_dmc16->reverse_rotate						= _DEF_CW;
+		p_dmc16->normal_rotate						= _DEF_CW;
+		p_dmc16->reverse_rotate						= _DEF_CCW;
 		p_dmc16->h_dmc16->Init.ch					= _DEF_DMC16_1;
 		p_dmc16->h_dmc16->enable					= false;
 		p_dmc16->h_dmc16->direction				= _NORMAL_ROTATION;
@@ -55,8 +55,8 @@ bool dmc16Init(uint8_t ch)
 		case _DEF_DMC16_2:
 		p_dmc16->h_dmc16									= &h_dmc16_2;
 		
-		p_dmc16->normal_rotate						= _DEF_CW;
-		p_dmc16->reverse_rotate						= _DEF_CCW;
+		p_dmc16->normal_rotate						= _DEF_CCW;
+		p_dmc16->reverse_rotate						= _DEF_CW;
 		p_dmc16->h_dmc16->Init.ch					= _DEF_DMC16_2;
 		p_dmc16->h_dmc16->enable					= false;
 		p_dmc16->h_dmc16->direction				= _NORMAL_ROTATION;
@@ -184,14 +184,8 @@ bool dmc16GetDirection(uint8_t ch)
 	
 	dmc16_t *p_dmc16 = &dmc16_tbl[ch];
 	
-	if (p_dmc16->h_dmc16->direction)
-	{
-		ret = p_dmc16->normal_rotate;
-	}
-	else
-	{
-		ret = p_dmc16->reverse_rotate;
-	}
+	ret = p_dmc16->h_dmc16->direction;
+
 	return ret;	
 }
 

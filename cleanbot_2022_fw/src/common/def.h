@@ -42,8 +42,11 @@
 #define _DEF_SERVO_1	0
 #define _DEF_SERVO_2	1
 
-#define _DEF_CW			0
-#define _DEF_CCW		1
+#define _DEF_CW				0
+#define _DEF_CCW			1
+
+#define _DEF_FOR			0
+#define _DEF_BACK			1
 
 #define _DEF_PWM1			0
 #define _DEF_PWM2			1
