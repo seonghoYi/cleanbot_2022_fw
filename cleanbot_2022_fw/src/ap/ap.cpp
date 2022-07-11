@@ -3,10 +3,12 @@
 
 #include <ros.h>
 #include <ros/time.h>
-#include <nav_msgs/Odometry.h>
-#include <geometry_msgs/Twist.h>
+
 #include <tf/tf.h>
 #include <tf/transform_broadcaster.h>
+
+#include <nav_msgs/Odometry.h>
+#include <geometry_msgs/Twist.h>
 
 
 #include <cmath>
@@ -19,12 +21,11 @@ bool use_ekf = false;
 
 ros::NodeHandle nh;
 
-tf::TransformBroadcaster odom_broadcaster;
-geometry_msgs::TransformStamped odom_trans;
-nav_msgs::Odometry odom;
-geometry_msgs::Quaternion odom_quat;
 
+
+nav_msgs::Odometry odom;
 ros::Publisher odom_pub("odom", &odom);
+
 
 
 
@@ -34,7 +35,7 @@ void vel_cb(const geometry_msgs::Twist &msg)
 	vth = msg.angular.z;
 }
 
-ros::Subscriber<geometry_msgs::Twist> vel_sub("twist_vel", vel_cb);
+ros::Subscriber<geometry_msgs::Twist> vel_sub("cmd_vel", vel_cb);
 
 
 
@@ -79,7 +80,6 @@ void apMain(void)
 
 		odomPublish(*cur_speed);
 
-
 		nh.spinOnce();
 	}
 }
@@ -88,9 +88,11 @@ void apMain(void)
 void odomPublish(motor_speed_t &speed)
 {
 	static uint32_t prev_time = 0;
+	static tf::TransformBroadcaster odom_broadcaster;
+	static geometry_msgs::TransformStamped odom_trans;
 
 	uint32_t delta_ms = millis()-prev_time;
-	if (delta_ms >= 100)
+	if (delta_ms >= 20)
 	{
 		float dt = (float)delta_ms / 1000.0f;
 
@@ -105,7 +107,7 @@ void odomPublish(motor_speed_t &speed)
 		y += delta_y;
 		th += delta_th;
 
-		odom_quat = tf::createQuaternionFromYaw(th);
+		geometry_msgs::Quaternion odom_quat = tf::createQuaternionFromYaw(th);
 
 		if(use_ekf == true)
 		{

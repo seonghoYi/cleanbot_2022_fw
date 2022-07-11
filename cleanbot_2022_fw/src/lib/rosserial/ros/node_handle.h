@@ -101,6 +101,10 @@ template<class Hardware,
          int MAX_PUBLISHERS = 25,
          int INPUT_SIZE = 1024,
          int OUTPUT_SIZE = 1024>
+/*
+ * Message from device dropped: message larger than buffer.
+ * 해당 오류가 발생하면 INPUT_SIZE와 OUTPUT_SIZE를 늘려야함.
+ */
 class NodeHandle_ : public NodeHandleBase_
 {
 protected:
