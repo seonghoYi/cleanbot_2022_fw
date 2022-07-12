@@ -27,8 +27,8 @@ bool motorInit(void)
 	}
 	motorSetLeftDirection(_DEF_FOR);
 	motorSetRightDirection(_DEF_FOR);
-	motorSetLeftSpeed(0.0f);
-	motorSetRightSpeed(0.0f);
+	motorSetLeftSpeedByDuty(0);
+	motorSetRightSpeedByDuty(0);
 	motorBreak();
 	motorStop();
 	return true;
@@ -65,7 +65,7 @@ void motorBreak(void)
 #endif
 }
 
-void motorSetLeftSpeed(float speed)
+void motorSetLeftSpeedByDuty(uint16_t duty)
 {
 	/*
 	const uint8_t power_max = 255;
@@ -78,13 +78,13 @@ void motorSetLeftSpeed(float speed)
 	}
 	*/
 #ifdef _USE_HW_DMC16
-	float rpm = (speed * 60) / (2*PI * WHEEL_RADIUS); // rpm은 duty와 비슷한 범위에 있음
-	uint16_t duty = constrain((uint16_t)rpm, 0, 100);
+	//float rpm = (speed * 60) / (2*PI * WHEEL_RADIUS); // rpm은 duty와 비슷한 범위에 있음
+	//uint16_t duty = constrain((uint16_t)rpm, 0, 100);
 	motor.setSpeed(_DEF_DMC16_2, duty);
 #endif
 }
 
-void motorSetRightSpeed(float speed)
+void motorSetRightSpeedByDuty(uint16_t duty)
 {
 	/*
 	const uint8_t power_max = 255;
@@ -97,8 +97,8 @@ void motorSetRightSpeed(float speed)
 	}
 	*/
 #ifdef _USE_HW_DMC16
-	float rpm = (speed * 60) / (2*PI * WHEEL_RADIUS); // rpm은 duty와 비슷한 범위에 있음
-	uint16_t duty = constrain((uint16_t)rpm, 0, 100);
+	//float rpm = (speed * 60) / (2*PI * WHEEL_RADIUS); // rpm은 duty와 비슷한 범위에 있음
+	//uint16_t duty = constrain((uint16_t)rpm, 0, 100);
 	motor.setSpeed(_DEF_DMC16_1, duty);
 #endif
 	

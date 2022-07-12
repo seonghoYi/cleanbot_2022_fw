@@ -142,3 +142,32 @@ void odomPublish(motor_speed_t &speed)
 		prev_time = millis();
 	}
 }
+
+
+/*
+void apInit()
+{
+	uartOpen(_DEF_UART1, 38400);
+
+	//motorSetLeftSpeedByDuty(50);
+	//motorRun();
+
+	motorControlInit(100);
+}
+
+
+void apMain()
+{
+
+	motor_speed_t set_speed = {0.3, 0.2};
+	while(1)
+	{
+		//uartPrintf(_DEF_UART1, "%f\n", motorGetLeftSpeed());
+		motor_speed_t *cur_speed = motorControlUpdate(set_speed);
+		uartPrintf(_DEF_UART1, "@%d, %f, %f\n", millis(), cur_speed->left_speed, cur_speed->right_speed);
+
+
+	}
+}
+*/
+

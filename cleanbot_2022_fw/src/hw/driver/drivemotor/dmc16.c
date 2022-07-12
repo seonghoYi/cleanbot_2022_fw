@@ -232,7 +232,8 @@ float dmc16GetRawRPS(uint8_t ch)
 		return ret;
 	}
 
-	float raw_rps = 1 / ((float)pulse / (float)freq);
+	//float raw_rps = 1 / ((float)pulse / (float)freq);
+	float raw_rps = (float)freq;
 	ret = raw_rps;
 	//ret = p_dmc16->h_dmc16->get_speed;
 	return ret;
