@@ -5,3 +5,4 @@
 /cleanbot_2022_fw/src/lib/f103_fw/STM32F103RBTX_FLASH.ld
 /cleanbot_2022_fw/cleanbot_2022_fw Debug.cfg
 /cleanbot_2022_fw/cleanbot_2022_fw Debug.launch
+/tools
