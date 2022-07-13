@@ -158,16 +158,16 @@ void apInit()
 
 void apMain()
 {
-
-	motor_speed_t set_speed = {0.3, 0.2};
+	uint32_t prev_time = millis();
+	motor_speed_t set_speed = {-0.2, -0.2};
 	while(1)
 	{
 		//uartPrintf(_DEF_UART1, "%f\n", motorGetLeftSpeed());
 		motor_speed_t *cur_speed = motorControlUpdate(set_speed);
 		uartPrintf(_DEF_UART1, "@%d, %f, %f\n", millis(), cur_speed->left_speed, cur_speed->right_speed);
-
-
+		//uartPrintf(_DEF_UART1, "%f %f\n", set_speed.left_speed, set_speed.right_speed);
 	}
 }
 */
+
 
