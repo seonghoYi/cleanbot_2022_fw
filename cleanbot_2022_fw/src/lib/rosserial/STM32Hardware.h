@@ -69,6 +69,12 @@ class STM32Hardware {
     	uartOpen(uart_ch, 57600);
     }
 
+    void setHardware(uint8_t uart_ch_, uint32_t baud)
+    {
+    	uart_ch = uart_ch_;
+    	uartOpen(uart_ch, baud);
+    }
+
 
     int read()
     {
@@ -84,14 +90,14 @@ class STM32Hardware {
 
     void write(uint8_t* data, int length) //512바이트를 초과하는 경우 결과를 보장할 수 없음
     {
-    	__disable_irq();
+    	//__disable_irq();
     	int n = length;
     	n = n <= tbuflen ? n : tbuflen; //입력 최대 크기 체크
 
 
     	uartWrite(_DEF_UART1, data, (uint32_t)n);
 			//uartWrite(_DEF_UART2, data, (uint32_t)n);
-    	__enable_irq();
+    	//__enable_irq();
     }
 
     unsigned long time()

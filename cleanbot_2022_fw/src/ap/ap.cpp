@@ -9,7 +9,7 @@
 
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Twist.h>
-
+#include <std_msgs/UInt32.h>
 
 #include <cmath>
 
@@ -22,11 +22,14 @@ bool use_ekf = false;
 ros::NodeHandle nh;
 
 
-
+tf::TransformBroadcaster odom_broadcaster;
+geometry_msgs::TransformStamped odom_trans;
+geometry_msgs::Quaternion odom_quat;
 nav_msgs::Odometry odom;
 ros::Publisher odom_pub("odom", &odom);
 
-
+std_msgs::UInt32 time;
+ros::Publisher time_pub("time", &time);
 
 
 void vel_cb(const geometry_msgs::Twist &msg)
@@ -47,8 +50,11 @@ void odomPublish(motor_speed_t &speed);
 void apInit(void)
 {
 	nh.initNode();
+	nh.getHardware()->setHardware(_DEF_UART1, 460800);
 	nh.advertise(odom_pub);
+	nh.advertise(time_pub);
 	nh.subscribe(vel_sub);
+	odom_broadcaster.init(nh);
 
 	motorControlInit(100);
 
@@ -58,10 +64,14 @@ void apInit(void)
 		nh.spinOnce();
 	}
 
+
 	while(nh.getParam("~use_ekf", &use_ekf) != true)
 	{
 		nh.spinOnce();
 	}
+	//nh.getParam("~use_ekf", &use_ekf);
+
+	//use_ekf = true;
 }
 
 
@@ -70,6 +80,8 @@ void apMain(void)
 	motor_speed_t set_speed;
 	motor_speed_t *cur_speed;
 
+	uint32_t prev_time = millis();
+	uint32_t loop_ms = millis();
 	while(1)
 	{
 		set_speed.left_speed 	= vx - vth*ROBOT_WIDTH/2;
@@ -80,6 +92,15 @@ void apMain(void)
 
 		odomPublish(*cur_speed);
 
+
+
+
+		if (millis()-prev_time >= 500)
+		{
+			ledToggle(_DEF_LED1);
+			prev_time = millis();
+		}
+
 		nh.spinOnce();
 	}
 }
@@ -87,11 +108,9 @@ void apMain(void)
 
 void odomPublish(motor_speed_t &speed)
 {
-	static uint32_t prev_time = 0;
-	static tf::TransformBroadcaster odom_broadcaster;
-	static geometry_msgs::TransformStamped odom_trans;
+	static uint32_t loop_time = 0;
 
-	uint32_t delta_ms = millis()-prev_time;
+	uint32_t delta_ms = millis()-loop_time;
 	if (delta_ms >= 20)
 	{
 		float dt = (float)delta_ms / 1000.0f;
@@ -107,9 +126,9 @@ void odomPublish(motor_speed_t &speed)
 		y += delta_y;
 		th += delta_th;
 
-		geometry_msgs::Quaternion odom_quat = tf::createQuaternionFromYaw(th);
+		odom_quat = tf::createQuaternionFromYaw(th);
 
-		if(use_ekf == true)
+		if(use_ekf == false)
 		{
 
 			odom_trans.header.stamp = nh.now();
@@ -133,13 +152,16 @@ void odomPublish(motor_speed_t &speed)
 		odom.pose.pose.orientation = odom_quat;
 
 		odom.child_frame_id = "base_link";
-		odom.twist.twist.linear.x = vx * cos(th);
-		odom.twist.twist.linear.y = vx * sin(th);
-		odom.twist.twist.angular.z = vth;
+		odom.twist.twist.linear.x = linear_x * cos(th);
+		odom.twist.twist.linear.y = linear_x * sin(th);
+		odom.twist.twist.angular.z = angular_z;
 
+		uint32_t loop_ms = millis();
 		odom_pub.publish(&odom);
+		time.data = millis()-loop_ms;
+		time_pub.publish(&time);
 
-		prev_time = millis();
+		loop_time = millis();
 	}
 }
 
