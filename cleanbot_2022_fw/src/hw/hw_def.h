@@ -7,10 +7,10 @@
 
 
 #define _USE_HW_LED
-#define 		 HW_LED_MAX_CH				1
+#define 		 HW_LED_MAX_CH				3
 
 #define _USE_HW_GPIO
-#define		 HW_GPIO_MAX_CH					3
+#define		 HW_GPIO_MAX_CH					4
 
 //#define _USE_HW_EXTI
 #define		 HW_EXTI_MAX_CH					3
@@ -21,8 +21,11 @@
 //#define _USE_HW_RUN_LED
 #define		 HW_RUN_LED_MAX_CH				1
 
+#define _USE_HW_USB
+#define _USE_HW_CDC
+
 #define _USE_HW_UART
-#define		 HW_UART_MAX_CH					2
+#define		 HW_UART_MAX_CH					1
 
 //#define _USE_HW_CTC
 #define		 HW_CTC_MAX_CH					4

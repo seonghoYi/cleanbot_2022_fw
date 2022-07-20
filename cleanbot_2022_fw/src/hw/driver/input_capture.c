@@ -51,9 +51,9 @@ typedef struct
 ic_tbl_t ic_tbl[IC_MAX_CH];
 //captured_value_t captured_value[IC_MAX_CH];
 
-TIM_HandleTypeDef htim2;
-DMA_HandleTypeDef hdma_tim2_ch1;
-DMA_HandleTypeDef hdma_tim2_ch2_ch4;
+TIM_HandleTypeDef htim1;
+DMA_HandleTypeDef hdma_tim1_ch1;
+DMA_HandleTypeDef hdma_tim1_ch2;
 
 
 bool inputCaptureBegin(uint8_t ch);
@@ -93,28 +93,29 @@ bool inputCaptureBegin(uint8_t ch)
   switch(ch)
   {
   case _DEF_IC1:
-    __HAL_RCC_TIM2_CLK_ENABLE();
+    /* TIM1 clock enable */
+    __HAL_RCC_TIM1_CLK_ENABLE();
 
     /**TIM2 GPIO Configuration
-    PA0-WKUP     ------> TIM2_CH1
+    PA8     ------> TIM1_CH1
     */
     __HAL_RCC_GPIOA_CLK_ENABLE();
 
-    GPIO_InitStruct.Pin = GPIO_PIN_0;
+    GPIO_InitStruct.Pin = GPIO_PIN_8;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 
-  	p_handle->p_htim 													= &htim2;
-  	p_handle->p_hdma 													= &hdma_tim2_ch1;
+  	p_handle->p_htim 													= &htim1;
+  	p_handle->p_hdma 													= &hdma_tim1_ch1;
   	p_handle->captured_value.is_captured		  = false;
   	p_handle->ic_timeout.is_running 					= false;
   	p_handle->ic_timeout.running_count 				= 0;
   	p_handle->ic_timeout.prev_running_count 	= 0;
   	p_handle->ic_timeout.prev_time 						= 0;
 
-  	p_handle->p_htim->Instance 								= TIM2;
+  	p_handle->p_htim->Instance 								= TIM1;
   	p_handle->p_htim->Init.Prescaler 					= 28800-1;
   	p_handle->p_htim->Init.CounterMode 				= TIM_COUNTERMODE_UP;
   	p_handle->p_htim->Init.Period 						= 65535;
@@ -159,11 +160,11 @@ bool inputCaptureBegin(uint8_t ch)
 
 
 
-    /* TIM2 DMA Init */
-    /* TIM2_CH1 Init */
+    /* TIM1 DMA Init */
+    /* TIM1_CH1 Init */
 		__HAL_RCC_DMA1_CLK_ENABLE();
 
-		p_handle->p_hdma->Instance = DMA1_Channel5;
+		p_handle->p_hdma->Instance = DMA1_Channel2;
 		p_handle->p_hdma->Init.Direction = DMA_PERIPH_TO_MEMORY;
 		p_handle->p_hdma->Init.PeriphInc = DMA_PINC_DISABLE;
 		p_handle->p_hdma->Init.MemInc = DMA_MINC_ENABLE;
@@ -171,7 +172,7 @@ bool inputCaptureBegin(uint8_t ch)
 		p_handle->p_hdma->Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
 		p_handle->p_hdma->Init.Mode = DMA_CIRCULAR;
 		p_handle->p_hdma->Init.Priority = DMA_PRIORITY_LOW;
-    if (HAL_DMA_Init(&hdma_tim2_ch1) != HAL_OK)
+    if (HAL_DMA_Init(&hdma_tim1_ch1) != HAL_OK)
     {
     	ret = false;
       Error_Handler();
@@ -181,35 +182,35 @@ bool inputCaptureBegin(uint8_t ch)
 
     //qbufferCreateBySize(&qbuffer[_DEF_IC1], (uint8_t *)&input_buf[_DEF_IC1][0], 2, IC_BUF_MAX_SIZE);
 
-    /* DMA1_Channel5_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+    /* DMA1_Channel2_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
 
   break;
   case _DEF_IC2:
-    __HAL_RCC_TIM2_CLK_ENABLE();
+    __HAL_RCC_TIM1_CLK_ENABLE();
 
-    /**TIM2 GPIO Configuration
-    PA1     ------> TIM2_CH2
+    /**TIM1 GPIO Configuration
+    PA9     ------> TIM1_CH2
     */
     __HAL_RCC_GPIOA_CLK_ENABLE();
 
-    GPIO_InitStruct.Pin = GPIO_PIN_1;
+    GPIO_InitStruct.Pin = GPIO_PIN_9;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 
 
-  	p_handle->p_htim 													= &htim2;
-  	p_handle->p_hdma 													= &hdma_tim2_ch2_ch4;
+  	p_handle->p_htim 													= &htim1;
+  	p_handle->p_hdma 													= &hdma_tim1_ch2;
   	p_handle->captured_value.is_captured		  = false;
   	p_handle->ic_timeout.is_running 					= false;
   	p_handle->ic_timeout.running_count 				= 0;
   	p_handle->ic_timeout.prev_running_count 	= 0;
   	p_handle->ic_timeout.prev_time 						= 0;
 
-  	p_handle->p_htim->Instance = TIM2;
+  	p_handle->p_htim->Instance = TIM1;
   	p_handle->p_htim->Init.Prescaler = 28800-1;
   	p_handle->p_htim->Init.CounterMode = TIM_COUNTERMODE_UP;
   	p_handle->p_htim->Init.Period = 65535;
@@ -252,11 +253,11 @@ bool inputCaptureBegin(uint8_t ch)
 			Error_Handler();
 		}
 
-		/* TIM2 DMA Init */
-		/* TIM2_CH2_CH4 Init */
+		/* TIM1 DMA Init */
+		/* TIM1_CH2 Init */
 		__HAL_RCC_DMA1_CLK_ENABLE();
 
-		p_handle->p_hdma->Instance = DMA1_Channel7;
+		p_handle->p_hdma->Instance = DMA1_Channel3;
 		p_handle->p_hdma->Init.Direction = DMA_PERIPH_TO_MEMORY;
 		p_handle->p_hdma->Init.PeriphInc = DMA_PINC_DISABLE;
 		p_handle->p_hdma->Init.MemInc = DMA_MINC_ENABLE;
@@ -276,9 +277,9 @@ bool inputCaptureBegin(uint8_t ch)
 
     //qbufferCreateBySize(&qbuffer[_DEF_IC2], (uint8_t *)&input_buf[_DEF_IC2][0], 2, IC_BUF_MAX_SIZE);
 
-	  /* DMA1_Channel7_IRQn interrupt configuration */
-	  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
-	  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+	  /* DMA1_Channel3_IRQn interrupt configuration */
+	  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+	  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 
 	break;
   default:
@@ -450,7 +451,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 	captured_value_t *p_captured_value;
 	ic_tbl_t *p_handle;
 
-	if (htim->Instance == TIM2)
+	if (htim->Instance == TIM1)
 	{
 		if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
 		{
@@ -460,6 +461,14 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 		{
 			channel = _DEF_IC2;
 		}
+		else
+		{
+			return;
+		}
+	}
+	else
+	{
+		return;
 	}
 	p_handle = &ic_tbl[channel];
 	p_captured_value = &p_handle->captured_value;

@@ -5,6 +5,8 @@ void hwInit(void)
 	bspInit();
 	ledInit();
 	gpioInit();
+	usbInit();
+	cdcInit();
 	uartInit();
 	//ctcInit();
 	pwmInit();

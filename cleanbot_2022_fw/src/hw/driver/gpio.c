@@ -15,9 +15,10 @@ typedef struct
 
 gpio_tbl_t gpio_tbl[GPIO_MAX_CH] = 
 {
-	{GPIOA, GPIO_PIN_4, _DEF_OUTPUT, GPIO_PIN_SET, GPIO_PIN_RESET, _DEF_LOW}, // motor enable
-	{GPIOA, GPIO_PIN_6, _DEF_OUTPUT, GPIO_PIN_SET, GPIO_PIN_RESET, _DEF_LOW}, // right motor dir
-	{GPIOA, GPIO_PIN_7, _DEF_OUTPUT, GPIO_PIN_SET, GPIO_PIN_RESET, _DEF_LOW}, // left motor dir
+	{GPIOA, GPIO_PIN_4, _DEF_OUTPUT_PULLUP, GPIO_PIN_SET, GPIO_PIN_RESET, _DEF_LOW}, // motor enable
+	{GPIOA, GPIO_PIN_3, _DEF_OUTPUT, GPIO_PIN_SET, GPIO_PIN_RESET, _DEF_LOW}, // right motor dir
+	{GPIOA, GPIO_PIN_2, _DEF_OUTPUT, GPIO_PIN_SET, GPIO_PIN_RESET, _DEF_LOW}, // left motor dir
+	{GPIOA, GPIO_PIN_5, _DEF_OUTPUT, GPIO_PIN_SET, GPIO_PIN_RESET, _DEF_LOW}, // suction
 };
 
 bool gpioPinMode(uint8_t ch, uint8_t mode);

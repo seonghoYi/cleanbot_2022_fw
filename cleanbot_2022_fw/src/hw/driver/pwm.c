@@ -15,7 +15,7 @@ typedef struct
 pwm_tbl_t pwm_tbl[PWM_MAX_CH];
 
 
-TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim2;
 
 bool pwmBegin(uint8_t ch);
 
@@ -47,21 +47,21 @@ bool pwmBegin(uint8_t ch)
 	switch(ch)
 	{
 		case _DEF_PWM1:
-			__HAL_RCC_TIM1_CLK_ENABLE();
+			__HAL_RCC_TIM2_CLK_ENABLE();
 
-	    /**TIM1 GPIO Configuration
-	    PA8     ------> TIM1_CH1
+	    /**TIM2 GPIO Configuration
+	    PA0     ------> TIM2_CH1
 	    */
 			__HAL_RCC_GPIOA_CLK_ENABLE();
 
-	    GPIO_InitStruct.Pin = GPIO_PIN_8;
+	    GPIO_InitStruct.Pin = GPIO_PIN_0;
 	    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-			p_handle->p_htim = &htim1;
+			p_handle->p_htim = &htim2;
 
-			p_handle->p_htim->Instance = TIM1;
+			p_handle->p_htim->Instance = TIM2;
 			p_handle->p_htim->Init.Prescaler = 72-1;
 			p_handle->p_htim->Init.CounterMode = TIM_COUNTERMODE_UP;
 			p_handle->p_htim->Init.Period = 500-1;
@@ -122,21 +122,21 @@ bool pwmBegin(uint8_t ch)
 
 		break;
 		case _DEF_PWM2:
-			__HAL_RCC_TIM1_CLK_ENABLE();
+			__HAL_RCC_TIM2_CLK_ENABLE();
 
-	    /**TIM1 GPIO Configuration
-	    PA9     ------> TIM1_CH2
+	    /**TIM2 GPIO Configuration
+	    PA1     ------> TIM2_CH2
 	    */
 			__HAL_RCC_GPIOA_CLK_ENABLE();
 
-	    GPIO_InitStruct.Pin = GPIO_PIN_9;
+	    GPIO_InitStruct.Pin = GPIO_PIN_1;
 	    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-			p_handle->p_htim = &htim1;
+			p_handle->p_htim = &htim2;
 
-			p_handle->p_htim->Instance = TIM1;
+			p_handle->p_htim->Instance = TIM2;
 			p_handle->p_htim->Init.Prescaler = 72-1;
 			p_handle->p_htim->Init.CounterMode = TIM_COUNTERMODE_UP;
 			p_handle->p_htim->Init.Period = 500-1;
