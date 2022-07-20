@@ -37,7 +37,7 @@ bool	dmc16Disable(void);
 bool	dmc16SetDirection(uint8_t ch, bool dir);
 bool	dmc16GetDirection(uint8_t ch);
 bool	dmc16SetSpeed(uint8_t ch, uint16_t speed);
-float dmc16GetRawRPS(uint8_t ch);
+float dmc16GetRPS(uint8_t ch);
 
 
 

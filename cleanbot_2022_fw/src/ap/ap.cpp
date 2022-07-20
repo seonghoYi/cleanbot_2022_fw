@@ -169,7 +169,7 @@ void odomPublish(motor_speed_t &speed)
 /*
 void apInit()
 {
-	uartOpen(_DEF_UART1, 38400);
+	uartOpen(_DEF_UART1, 460800);
 
 	//motorSetLeftSpeedByDuty(50);
 	//motorRun();
@@ -181,9 +181,14 @@ void apInit()
 void apMain()
 {
 	uint32_t prev_time = millis();
-	motor_speed_t set_speed = {-0.2, -0.2};
+	motor_speed_t set_speed = {0.2, 0.2};
 	while(1)
 	{
+		if (millis()-prev_time >= 1000)
+		{
+			ledToggle(_DEF_LED1);
+			prev_time = millis();
+		}
 		//uartPrintf(_DEF_UART1, "%f\n", motorGetLeftSpeed());
 		motor_speed_t *cur_speed = motorControlUpdate(set_speed);
 		uartPrintf(_DEF_UART1, "@%d, %f, %f\n", millis(), cur_speed->left_speed, cur_speed->right_speed);

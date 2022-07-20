@@ -1,6 +1,8 @@
 #include "input_capture.h"
 #include "qbuffer.h"
 #include "uart.h"
+
+
 #ifdef _USE_HW_INPUT_CAPTURE
 
 #define IC_BUF_MAX_SIZE	2
@@ -377,9 +379,10 @@ uint16_t inputCaptureReadValue(uint8_t ch)
 */
 
 
-uint16_t *inputCaptureGetPulseRawData(uint8_t ch)
+float inputCaptureGetPulseFreq(uint8_t ch)
 {
-	static uint16_t ret[2] = {0, };
+	//static uint16_t ret[2] = {0, };
+	float ret;
 	//uint16_t capture[2];
 	ic_tbl_t *p_handle = &ic_tbl[ch];
 	captured_value_t *p_captured_value = &p_handle->captured_value;
@@ -407,15 +410,13 @@ uint16_t *inputCaptureGetPulseRawData(uint8_t ch)
 
 	if (p_handle->ic_timeout.is_running != true)
 	{
-		ret[0] = 0;
-		ret[1] = 0;
+		ret = 0;
 	}
 
 
 	if (p_captured_value->is_captured != true)
 	{
-		ret[0] = p_captured_value->prev_counter_pulse;
-		ret[1] = (uint16_t)p_captured_value->prev_freq;
+		ret = p_captured_value->prev_freq;
 	}
 	else
 	{
@@ -431,11 +432,11 @@ uint16_t *inputCaptureGetPulseRawData(uint8_t ch)
 		count_freq = p_handle->pclk / (p_handle->p_htim->Init.Prescaler + 1);
 
 		p_captured_value->prev_counter_pulse = period;
-		p_captured_value->prev_freq = (count_freq / period) + 0.5;
 
 
-		ret[0] = p_captured_value->prev_counter_pulse;
-		ret[1] = (uint16_t)p_captured_value->prev_freq;
+		p_captured_value->prev_freq = (count_freq / period) + 0.5; //반올림 및 0 나누기 회피
+
+		ret = p_captured_value->prev_freq;
 		p_captured_value->is_captured = false;
 	}
 
@@ -460,6 +461,14 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 		{
 			channel = _DEF_IC2;
 		}
+		else
+		{
+			return;
+		}
+	}
+	else
+	{
+		return;
 	}
 	p_handle = &ic_tbl[channel];
 	p_captured_value = &p_handle->captured_value;

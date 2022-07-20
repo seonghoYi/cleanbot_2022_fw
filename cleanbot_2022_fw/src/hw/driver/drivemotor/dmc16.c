@@ -84,7 +84,7 @@ bool dmc16DriverInit(drivemotor_driver_t *p_driver)
 	p_driver->stopMotor			= dmc16Stop;
 	p_driver->breakMotor		= dmc16Hold;
 	p_driver->setSpeed			= dmc16SetSpeed;
-	p_driver->getSpeed			= dmc16GetRawRPS;
+	p_driver->getSpeed			= dmc16GetRPS;
 	p_driver->setDirection	= dmc16SetDirection;
 	p_driver->getDirection	= dmc16GetDirection;
 	p_driver->setCallBack		= NULL;
@@ -218,23 +218,17 @@ bool dmc16SetSpeed(uint8_t ch, uint16_t speed)
 	return ret;
 }
 
-float dmc16GetRawRPS(uint8_t ch)
+float dmc16GetRPS(uint8_t ch)
 {
 	float ret = 0;
 	dmc16_t *p_dmc16 = &dmc16_tbl[ch];
-	uint16_t *p_raw_data = inputCaptureGetPulseRawData(p_dmc16->h_dmc16->Init.input_ch);
+	float pulse_freq = inputCaptureGetPulseFreq(p_dmc16->h_dmc16->Init.input_ch);
 
-	uint16_t pulse = p_raw_data[0];
-	uint16_t freq  = p_raw_data[1];
 
-	if (freq == 0)
-	{
-		return ret;
-	}
 
 	//float raw_rps = 1 / ((float)pulse / (float)freq);
-	float raw_rps = (float)freq;
-	ret = raw_rps;
+	float rps = pulse_freq;
+	ret = rps;
 	//ret = p_dmc16->h_dmc16->get_speed;
 	return ret;
 }

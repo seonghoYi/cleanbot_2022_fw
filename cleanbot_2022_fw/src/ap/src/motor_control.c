@@ -97,6 +97,8 @@ motor_speed_t *motorControlUpdate(motor_speed_t set_speed)
 			ei_right_term = 0;
 		}
 
+		old_set_speed.left_speed = set_speed.left_speed;
+		old_set_speed.right_speed = set_speed.right_speed;
 
 		float dt = (float)delta_ms / 1000.0f;
 
