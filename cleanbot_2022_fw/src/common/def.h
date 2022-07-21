@@ -18,6 +18,11 @@
 #define _DEF_LED2			1
 #define _DEF_LED3			2
 
+
+#define _DEF_ADC1			0
+#define _DEF_ADC2			1
+#define _DEF_ADC3			2
+
 #define _DEF_INPUT								0
 #define _DEF_INPUT_PULLUP					1
 #define _DEF_INPUT_PULLDOWN				2
@@ -50,6 +55,7 @@
 
 #define _DEF_PWM1			0
 #define _DEF_PWM2			1
+#define _DEF_PWM3			2
 
 #define _DEF_IC1			0
 #define _DEF_IC2			1

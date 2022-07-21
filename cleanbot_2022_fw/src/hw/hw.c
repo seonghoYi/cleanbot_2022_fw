@@ -9,6 +9,8 @@ void hwInit(void)
 	//ctcInit();
 	pwmInit();
 	inputCaptureInit();
+
+	adcInit();
 	//hc05Init();
 	//suctionMotorInit();
 	motorInit();

@@ -16,6 +16,7 @@ pwm_tbl_t pwm_tbl[PWM_MAX_CH];
 
 
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim3;
 
 bool pwmBegin(uint8_t ch);
 
@@ -194,6 +195,68 @@ bool pwmBegin(uint8_t ch)
 				Error_Handler();
 			}
 		
+		break;
+		case _DEF_PWM3:
+	    /* TIM3 clock enable */
+	    __HAL_RCC_TIM3_CLK_ENABLE();
+
+	    __HAL_RCC_GPIOC_CLK_ENABLE();
+	    /**TIM3 GPIO Configuration
+	    PC6     ------> TIM3_CH1
+	    */
+	    GPIO_InitStruct.Pin = GPIO_PIN_6;
+	    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	    __HAL_AFIO_REMAP_TIM3_ENABLE();
+
+	    p_handle->p_htim = &htim3;
+
+	    p_handle->p_htim->Instance = TIM3;
+	    p_handle->p_htim->Init.Prescaler = 0;
+	    p_handle->p_htim->Init.CounterMode = TIM_COUNTERMODE_UP;
+	    p_handle->p_htim->Init.Period = 65535;
+	    p_handle->p_htim->Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+	    p_handle->p_htim->Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+
+	    p_handle->channel = TIM_CHANNEL_1;
+
+			if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+			{
+				ret = false;
+				Error_Handler();
+			}
+
+			sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+			if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+			{
+				ret = false;
+				Error_Handler();
+			}
+			if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+			{
+				ret = false;
+				Error_Handler();
+			}
+			sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+			sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+			if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+			{
+				ret = false;
+				Error_Handler();
+			}
+
+			p_handle->sConfigOC.OCMode = TIM_OCMODE_PWM1;
+			p_handle->sConfigOC.Pulse = 0;
+			p_handle->sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+			p_handle->sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+		  if (HAL_TIM_PWM_ConfigChannel(&htim3, &p_handle->sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+		  {
+		  	ret = false;
+		    Error_Handler();
+		  }
+
 		break;
 		default:
 			ret = false;

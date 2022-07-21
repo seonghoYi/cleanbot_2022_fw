@@ -1,4 +1,5 @@
 #include "motor_control.h"
+#include "float.h"
 #include "math.h"
 #include "uart.h"
 
@@ -91,8 +92,13 @@ motor_speed_t *motorControlUpdate(motor_speed_t set_speed)
 			motorStop();
 		}
 
-		if ((int16_t)(old_set_speed.left_speed*100) != (int16_t)(set_speed.left_speed*100) || (int16_t)(old_set_speed.right_speed*100) != (int16_t)(set_speed.right_speed*100))
+		if (fabsf(old_set_speed.left_speed - set_speed.left_speed) > FLT_EPSILON || fabsf(old_set_speed.right_speed - set_speed.right_speed) > FLT_EPSILON)
 		{
+			for (int i = 0; i < 4; i++)
+			{
+				filter[i].prev_input = 0.0f;
+				filter[i].prev_output = 0.0f;
+			}
 			ei_left_term = 0;
 			ei_right_term = 0;
 		}

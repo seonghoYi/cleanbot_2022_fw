@@ -13,6 +13,9 @@ extern "C" {
 #include "ctc.h"
 #include "pwm.h"
 #include "input_capture.h"
+
+#include "adc.h"
+
 #include "hc05.h"
 #include "suctionmotor.h"
 #include "drivemotor.h"

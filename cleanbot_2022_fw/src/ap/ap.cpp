@@ -9,7 +9,12 @@
 
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Twist.h>
+
+#include <std_srvs/Empty.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/UInt32.h>
+
+#include <sensor_msgs/BatteryState.h>
 
 #include <cmath>
 
@@ -32,6 +37,9 @@ std_msgs::UInt32 time;
 ros::Publisher time_pub("time", &time);
 
 
+sensor_msgs::BatteryState bat;
+ros::Publisher bat_state_pub("battery_state", &bat);
+
 void vel_cb(const geometry_msgs::Twist &msg)
 {
 	vx = msg.linear.x;
@@ -41,8 +49,33 @@ void vel_cb(const geometry_msgs::Twist &msg)
 ros::Subscriber<geometry_msgs::Twist> vel_sub("cmd_vel", vel_cb);
 
 
+void trash_holder_cb(const std_msgs::Bool &msg)
+{
 
-const float ROBOT_WIDTH = 0.23f;
+}
+
+ros::Subscriber<std_msgs::Bool> trash_holder_sub("trash_holder", trash_holder_cb);
+
+void suction_motor_cb(const std_msgs::Bool &msg)
+{
+
+}
+
+ros::Subscriber<std_msgs::Bool> suction_motor_sub("suction_motor", suction_motor_cb);
+
+void odom_clear_cb(const std_srvs::EmptyRequest &req, std_srvs::EmptyResponse &res)
+{
+	vx = 0;
+	vth = 0;
+	x = 0;
+	y = 0;
+	th = 0;
+}
+
+ros::ServiceServer<std_srvs::EmptyRequest, std_srvs::EmptyResponse> odom_init_srv("odom_clear", &odom_clear_cb);
+
+
+const float ROBOT_WIDTH = 0.22f;
 
 void odomPublish(motor_speed_t &speed);
 
@@ -53,7 +86,12 @@ void apInit(void)
 	nh.getHardware()->setHardware(_DEF_UART1, 460800);
 	nh.advertise(odom_pub);
 	nh.advertise(time_pub);
+	nh.advertise(bat_state_pub);
 	nh.subscribe(vel_sub);
+	nh.subscribe(trash_holder_sub);
+	nh.subscribe(suction_motor_sub);
+
+	nh.advertiseService(odom_init_srv);
 	odom_broadcaster.init(nh);
 
 	motorControlInit(100);
@@ -92,7 +130,8 @@ void apMain(void)
 
 		odomPublish(*cur_speed);
 
-
+		bat.voltage = 0;
+		bat_state_pub.publish(&bat);
 
 
 		if (millis()-prev_time >= 500)
@@ -111,7 +150,7 @@ void odomPublish(motor_speed_t &speed)
 	static uint32_t loop_time = 0;
 
 	uint32_t delta_ms = millis()-loop_time;
-	if (delta_ms >= 20)
+	if (delta_ms >= 50)
 	{
 		float dt = (float)delta_ms / 1000.0f;
 
@@ -174,24 +213,28 @@ void apInit()
 	//motorSetLeftSpeedByDuty(50);
 	//motorRun();
 
-	motorControlInit(100);
+	//motorControlInit(100);
 }
 
 
 void apMain()
 {
 	uint32_t prev_time = millis();
-	motor_speed_t set_speed = {0.2, 0.2};
+	//motor_speed_t set_speed = {0.2, 0.2};
 	while(1)
 	{
 		if (millis()-prev_time >= 1000)
 		{
 			ledToggle(_DEF_LED1);
 			prev_time = millis();
+
+
+			uint16_t adc = adcRead(_DEF_ADC1);
+			uartPrintf(_DEF_UART1, "%d\n", adc);
 		}
 		//uartPrintf(_DEF_UART1, "%f\n", motorGetLeftSpeed());
-		motor_speed_t *cur_speed = motorControlUpdate(set_speed);
-		uartPrintf(_DEF_UART1, "@%d, %f, %f\n", millis(), cur_speed->left_speed, cur_speed->right_speed);
+		//motor_speed_t *cur_speed = motorControlUpdate(set_speed);
+		//uartPrintf(_DEF_UART1, "@%d, %f, %f\n", millis(), cur_speed->left_speed, cur_speed->right_speed);
 		//uartPrintf(_DEF_UART1, "%f %f\n", set_speed.left_speed, set_speed.right_speed);
 	}
 }

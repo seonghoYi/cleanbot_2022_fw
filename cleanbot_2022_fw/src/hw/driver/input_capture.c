@@ -6,7 +6,7 @@
 #ifdef _USE_HW_INPUT_CAPTURE
 
 #define IC_BUF_MAX_SIZE	2
-#define IC_TIMOUT				15 //ms
+#define IC_TIMOUT				50 //ms
 
 typedef struct
 {
