@@ -55,7 +55,7 @@ ic_tbl_t ic_tbl[IC_MAX_CH];
 
 TIM_HandleTypeDef htim2;
 DMA_HandleTypeDef hdma_tim2_ch1;
-DMA_HandleTypeDef hdma_tim2_ch2_ch4;
+DMA_HandleTypeDef hdma_tim2_ch3;
 
 
 bool inputCaptureBegin(uint8_t ch);
@@ -192,19 +192,21 @@ bool inputCaptureBegin(uint8_t ch)
     __HAL_RCC_TIM2_CLK_ENABLE();
 
     /**TIM2 GPIO Configuration
-    PA1     ------> TIM2_CH2
+    PB10     ------> TIM2_CH3
     */
-    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
 
-    GPIO_InitStruct.Pin = GPIO_PIN_1;
+    GPIO_InitStruct.Pin = GPIO_PIN_10;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    __HAL_AFIO_REMAP_TIM2_PARTIAL_2();
 
 
 
   	p_handle->p_htim 													= &htim2;
-  	p_handle->p_hdma 													= &hdma_tim2_ch2_ch4;
+  	p_handle->p_hdma 													= &hdma_tim2_ch3;
   	p_handle->captured_value.is_captured		  = false;
   	p_handle->ic_timeout.is_running 					= false;
   	p_handle->ic_timeout.running_count 				= 0;
@@ -218,7 +220,7 @@ bool inputCaptureBegin(uint8_t ch)
   	p_handle->p_htim->Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   	p_handle->p_htim->Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 
-  	p_handle->channel = TIM_CHANNEL_2;
+  	p_handle->channel = TIM_CHANNEL_3;
   	p_handle->pclk 		= HAL_RCC_GetPCLK1Freq() * 2; //PLCK1의 클럭은 32MHz로 설정되어 있지만 타이머 클럭은 x2가 되어 있으므로
 
 		if (HAL_TIM_Base_Init(p_handle->p_htim) != HAL_OK)
@@ -258,7 +260,7 @@ bool inputCaptureBegin(uint8_t ch)
 		/* TIM2_CH2_CH4 Init */
 		__HAL_RCC_DMA1_CLK_ENABLE();
 
-		p_handle->p_hdma->Instance = DMA1_Channel7;
+		p_handle->p_hdma->Instance = DMA1_Channel1;
 		p_handle->p_hdma->Init.Direction = DMA_PERIPH_TO_MEMORY;
 		p_handle->p_hdma->Init.PeriphInc = DMA_PINC_DISABLE;
 		p_handle->p_hdma->Init.MemInc = DMA_MINC_ENABLE;
@@ -274,13 +276,13 @@ bool inputCaptureBegin(uint8_t ch)
 
 		/* Several peripheral DMA handle pointers point to the same DMA handle.
 		 Be aware that there is only one channel to perform all the requested DMAs. */
-		__HAL_LINKDMA(p_handle->p_htim,hdma[TIM_DMA_ID_CC2],*(p_handle->p_hdma));
+		__HAL_LINKDMA(p_handle->p_htim,hdma[TIM_DMA_ID_CC3],*(p_handle->p_hdma));
 
     //qbufferCreateBySize(&qbuffer[_DEF_IC2], (uint8_t *)&input_buf[_DEF_IC2][0], 2, IC_BUF_MAX_SIZE);
 
-	  /* DMA1_Channel7_IRQn interrupt configuration */
-	  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
-	  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+	  /* DMA1_Channel1_IRQn interrupt configuration */
+	  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+	  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
 	break;
   default:
@@ -457,7 +459,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 		{
 			channel = _DEF_IC1;
 		}
-		else if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+		else if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
 		{
 			channel = _DEF_IC2;
 		}
