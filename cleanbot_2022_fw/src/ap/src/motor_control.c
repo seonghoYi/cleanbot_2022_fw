@@ -9,7 +9,7 @@
 #define P_GAIN  300.0f
 #define I_GAIN	150.0f
 #define D_GAIN	100.0f
-#define A_GAIN	15.0f
+#define A_GAIN	15.0f //anti-windup gain
 
 uint32_t update_ms = 0;
 

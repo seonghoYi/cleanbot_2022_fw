@@ -6,6 +6,10 @@
 #include "bsp.h"
 
 
+#define _USE_HW_USB
+#define _USE_HW_CDC
+
+
 #define _USE_HW_LED
 #define 		 HW_LED_MAX_CH				3
 

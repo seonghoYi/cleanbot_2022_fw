@@ -1,6 +1,7 @@
 ﻿#include "ap.h"
 #include "motor_control.h"
 
+
 #include <ros.h>
 #include <ros/time.h>
 
@@ -12,7 +13,6 @@
 
 #include <std_srvs/Empty.h>
 #include <std_msgs/Bool.h>
-#include <std_msgs/UInt32.h>
 
 #include <sensor_msgs/BatteryState.h>
 
@@ -32,10 +32,6 @@ geometry_msgs::TransformStamped odom_trans;
 geometry_msgs::Quaternion odom_quat;
 nav_msgs::Odometry odom;
 ros::Publisher odom_pub("odom", &odom);
-
-std_msgs::UInt32 time;
-ros::Publisher time_pub("time", &time);
-
 
 sensor_msgs::BatteryState bat;
 ros::Publisher bat_state_pub("battery_state", &bat);
@@ -75,7 +71,12 @@ void odom_clear_cb(const std_srvs::EmptyRequest &req, std_srvs::EmptyResponse &r
 ros::ServiceServer<std_srvs::EmptyRequest, std_srvs::EmptyResponse> odom_init_srv("odom_clear", &odom_clear_cb);
 
 
-const float ROBOT_WIDTH = 0.22f;
+const float ROBOT_WIDTH = 0.23f;
+
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
+  nh.getHardware()->flush();
+}
 
 void odomPublish(motor_speed_t &speed);
 
@@ -85,7 +86,6 @@ void apInit(void)
 	nh.initNode();
 	nh.getHardware()->setHardware(_DEF_UART1, 460800);
 	nh.advertise(odom_pub);
-	nh.advertise(time_pub);
 	nh.advertise(bat_state_pub);
 	nh.subscribe(vel_sub);
 	nh.subscribe(trash_holder_sub);
@@ -97,13 +97,13 @@ void apInit(void)
 	motorControlInit(100);
 
 
-	while(nh.connected() != true)
+	while (nh.connected() != true)
 	{
 		nh.spinOnce();
 	}
 
 
-	while(nh.getParam("~use_ekf", &use_ekf) != true)
+	while (nh.getParam("~use_ekf", &use_ekf) != true)
 	{
 		nh.spinOnce();
 	}
@@ -150,7 +150,7 @@ void odomPublish(motor_speed_t &speed)
 	static uint32_t loop_time = 0;
 
 	uint32_t delta_ms = millis()-loop_time;
-	if (delta_ms >= 50)
+	if (delta_ms >= 20)
 	{
 		float dt = (float)delta_ms / 1000.0f;
 
@@ -195,10 +195,14 @@ void odomPublish(motor_speed_t &speed)
 		odom.twist.twist.linear.y = linear_x * sin(th);
 		odom.twist.twist.angular.z = angular_z;
 
-		uint32_t loop_ms = millis();
+		//odom.twist.covariance[0] = 1e6;
+		//odom.twist.covariance[7] = 1e6;
+		//odom.twist.covariance[14] = 1e6;
+		//odom.twist.covariance[21] = 1e6;
+		//odom.twist.covariance[28] = 1e6;
+		//odom.twist.covariance[35] = 1e6;
+
 		odom_pub.publish(&odom);
-		time.data = millis()-loop_ms;
-		time_pub.publish(&time);
 
 		loop_time = millis();
 	}
@@ -213,24 +217,31 @@ void apInit()
 	//motorSetLeftSpeedByDuty(50);
 	//motorRun();
 
-	//motorControlInit(100);
+	motorControlInit(100);
 }
 
-
+#include <string.h>
 void apMain()
 {
 	uint32_t prev_time = millis();
-	//motor_speed_t set_speed = {0.2, 0.2};
+	motor_speed_t set_speed = {0.2, 0.2};
 	while(1)
 	{
 		if (millis()-prev_time >= 1000)
 		{
 			ledToggle(_DEF_LED1);
 			prev_time = millis();
+			//uartPrintf(_DEF_UART1, "hello\n");
+			char buf[100];
+			sprintf(buf, "hello\n");
+			//uint16_t adc = adcRead(_DEF_ADC1);
+			//uartPrintf(_DEF_UART1, "%d\n", adc);
 
-
-			uint16_t adc = adcRead(_DEF_ADC1);
-			uartPrintf(_DEF_UART1, "%d\n", adc);
+			uint32_t len = uartWrite(_DEF_UART1, (uint8_t *)buf, strlen(buf));
+			if (len > 0 )
+			{
+				uartPrintf(_DEF_UART1, "%d\n", len);
+			}
 		}
 		//uartPrintf(_DEF_UART1, "%f\n", motorGetLeftSpeed());
 		//motor_speed_t *cur_speed = motorControlUpdate(set_speed);
@@ -239,5 +250,3 @@ void apMain()
 	}
 }
 */
-
-

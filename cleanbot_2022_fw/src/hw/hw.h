@@ -9,6 +9,9 @@ extern "C" {
 #include "hw_def.h"
 #include "gpio.h"
 #include "exti.h"
+
+#include "usb.h"
+#include "cdc.h"
 #include "uart.h"
 #include "ctc.h"
 #include "pwm.h"
