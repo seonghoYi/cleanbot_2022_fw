@@ -19,6 +19,7 @@ typedef struct
 
 	UART_HandleTypeDef *p_huart;
 	DMA_HandleTypeDef *p_hdma_rx;
+	DMA_HandleTypeDef *p_hdma_tx;
 } uart_handle_t;
 
 static uart_handle_t uart_handle[UART_MAX_CH];
@@ -34,6 +35,7 @@ static uint8_t rx_buf[UART_MAX_CH][UART_BUF_MAX_SIZE];
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
+DMA_HandleTypeDef hdma_usart1_tx;
 
 bool uartInit(void)
 {
@@ -66,6 +68,8 @@ bool uartOpen(uint8_t ch, uint32_t baud)
 		case _DEF_UART2:
 
 			p_handle->p_huart = &huart1;
+			p_handle->p_hdma_rx = &hdma_usart1_rx;
+			p_handle->p_hdma_tx = &hdma_usart1_tx;
 
 			p_handle->p_huart->Instance = USART1;
 			p_handle->p_huart->Init.BaudRate = baud;
@@ -96,6 +100,7 @@ bool uartOpen(uint8_t ch, uint32_t baud)
 				p_handle->is_cdc = false;
 				p_handle->baud = baud;
 
+				HAL_HalfDuplex_EnableReceiver(p_handle->p_huart);
 				if (HAL_UART_Receive_DMA(p_handle->p_huart, (uint8_t *)&rx_buf[_DEF_UART2][0], UART_BUF_MAX_SIZE) != HAL_OK)
 				{
 					ret = false;
@@ -107,7 +112,11 @@ bool uartOpen(uint8_t ch, uint32_t baud)
 			  /* DMA interrupt init */
 			  /* DMA1_Channel5_IRQn interrupt configuration */
 			  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
-			  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+			  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn); //rx
+
+			  /* DMA1_Channel4_IRQn interrupt configuration */
+			  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+			  HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn); //tx
 
 
 			}
@@ -271,6 +280,39 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
 
     __HAL_AFIO_REMAP_USART1_ENABLE();
 
+    /* USART1 DMA Init */
+    /* USART1_RX Init */
+    hdma_usart1_rx.Instance = DMA1_Channel5;
+    hdma_usart1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_usart1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart1_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart1_rx.Init.Mode = DMA_CIRCULAR;
+    hdma_usart1_rx.Init.Priority = DMA_PRIORITY_LOW;
+    if (HAL_DMA_Init(&hdma_usart1_rx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart1_rx);
+
+    /* USART1_TX Init */
+    hdma_usart1_tx.Instance = DMA1_Channel4;
+    hdma_usart1_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_usart1_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart1_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart1_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart1_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart1_tx.Init.Mode = DMA_NORMAL;
+    hdma_usart1_tx.Init.Priority = DMA_PRIORITY_LOW;
+    if (HAL_DMA_Init(&hdma_usart1_tx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart1_tx);
+
     /* USART1 interrupt Init */
     HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(USART1_IRQn);
@@ -295,6 +337,10 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     PB6     ------> USART1_TX
     */
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_6);
+
+    /* USART1 DMA DeInit */
+    HAL_DMA_DeInit(uartHandle->hdmarx);
+    HAL_DMA_DeInit(uartHandle->hdmatx);
 
     /* USART1 interrupt Deinit */
     HAL_NVIC_DisableIRQ(USART1_IRQn);

@@ -8,19 +8,14 @@ extern "C" {
 
 #include "hw_def.h"
 #include "gpio.h"
-#include "exti.h"
 #include "usb.h"
 #include "cdc.h"
 #include "uart.h"
-#include "ctc.h"
 #include "pwm.h"
 #include "input_capture.h"
-#include "hc05.h"
-#include "suctionmotor.h"
 #include "drivemotor.h"
 #include "led.h"
-//#include "line_led.h"
-#include "servo.h"
+#include "dxl.h"
 
 void hwInit(void);
 

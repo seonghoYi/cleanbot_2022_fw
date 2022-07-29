@@ -39,8 +39,7 @@
 #define _DEF_SG90_1		0
 #define _DEF_SG90_2		1
 
-#define _DEF_SERVO_1	0
-#define _DEF_SERVO_2	1
+#define _DEF_DXL1			0
 
 #define _DEF_CW				0
 #define _DEF_CCW			1

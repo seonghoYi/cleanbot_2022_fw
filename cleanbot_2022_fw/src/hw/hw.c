@@ -9,14 +9,16 @@ void hwInit(void)
 	cdcInit();
 	uartInit();
 	//ctcInit();
-	pwmInit();
-	inputCaptureInit();
+	//pwmInit();
+	//inputCaptureInit();
 	//hc05Init();
 	//suctionMotorInit();
-	motorInit();
+	//motorInit();
 	
 	//runLedInit();
 	//lineLedInit();
 	
 	//servoInit();
+
+	dxlInit();
 }

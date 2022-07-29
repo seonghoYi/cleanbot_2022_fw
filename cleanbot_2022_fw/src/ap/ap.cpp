@@ -170,10 +170,10 @@ void odomPublish(motor_speed_t &speed)
 void apInit()
 {
 	uartOpen(_DEF_UART1, 115200);
-	motorControlInit(100);
+	//motorControlInit(100);
 }
 
-
+/*
 void apMain()
 {
 	motor_speed_t set_speed = {0.2, 0.2};
@@ -191,6 +191,43 @@ void apMain()
 		uartPrintf(_DEF_UART1, "%f, %f\n", cur_speed->left_speed, cur_speed->right_speed);
 	}
 }
+*/
 
+void apMain()
+{
+	uint32_t prev_time = millis();
+
+	dxl_t dxl;
+	uartOpen(_DEF_UART2, 57600);
+
+/*
+	uint8_t param[] = {0x00, 0x00, 0x02, 0x00};
+	dxlOpen(&dxl, _DEF_DXL1, 57600);
+	dxlTransmitPacket(&dxl, 1, 0x02, param, 4);
+
+	while (dxlReceivePacket(&dxl) !=true);
+
+	for (int i = 0; i < dxl.packet.length-4; i++)
+	{
+		uartPrintf(_DEF_UART1, "%d ", dxl.packet.param);
+	}
+	uartPrintf(_DEF_UART1, "\n");
+*/
+
+	uint8_t buf[] = {0xff, 0xff, 0xfd, 0x00, 0x01, 0x03, 0x00, 0x01, 0x19, 0x4e};
+	uartWrite(_DEF_UART2, buf, 10);
+
+
+
+	while(1)
+	{
+		if (millis()-prev_time >= 1000)
+		{
+			uartPrintf(_DEF_UART1, "Hello\n");
+			prev_time = millis();
+		}
+
+	}
+}
 
 

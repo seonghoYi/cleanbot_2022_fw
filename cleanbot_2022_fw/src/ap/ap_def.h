@@ -5,7 +5,7 @@
 #include "hw.h"
 
 
-#define _USE_AP_MOTOR_CONTROL
+//#define _USE_AP_MOTOR_CONTROL
 //#define _USE_AP_ODOMETRY
 
 
